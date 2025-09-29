@@ -1,0 +1,30 @@
+{
+  "name": "git-gang",
+  "version": "1.0.0",
+  "description": "The world's biggest contributors list!",
+  "scripts": {
+    "validate": "node scripts/validate-contribution.js",
+    "validate-comprehensive": "node scripts/comprehensive-validation.js",
+    "process": "node scripts/process-contribution.js",
+    "sort": "node scripts/sort-contributors.js",
+    "update-badge": "node scripts/update-badge.js",
+    "reset": "node scripts/reset-staging.js",
+    "check-profanity": "node scripts/check-profanity.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SashankBhamidi/git-gang.git"
+  },
+  "keywords": [
+    "contributors",
+    "community",
+    "github",
+    "open-source"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
