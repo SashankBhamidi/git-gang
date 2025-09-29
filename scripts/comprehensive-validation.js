@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+
+/**
+ * Comprehensive validation script with profanity checking
+ * Uses shared validation-utils module
+ */
+
+const fs = require('fs');
+const {
+  MAINTAINERS,
+  ENTRY_REGEX,
+  setOutput,
+  setError,
+  parseSimpleFormat,
+  validateFormat,
+  checkExistingContributor,
+  sanitizeInput
+} = require('./validation-utils');
+
+async function checkProfanityAPI(text, retryCount = 0) {
+  const MAX_RETRIES = 3;
+  const TIMEOUT_MS = 5000;
+  const RETRY_DELAYS = [1000, 2000, 3000]; // Exponential backoff
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    const response = await fetch(
+      `https://www.purgomalum.com/service/containsprofanity?text=${encodeURIComponent(text)}`,
+      { signal: controller.signal }
+    );
+
+    clearTimeout(timeoutId);
+    const result = await response.text();
+    return result.toLowerCase() === 'true';
+  } catch (error) {
+    console.log(`Profanity API check failed for "${text}" (attempt ${retryCount + 1}/${MAX_RETRIES}): ${error.message}`);
+
+    // Retry logic with exponential backoff
+    if (retryCount < MAX_RETRIES - 1) {
+      const delay = RETRY_DELAYS[retryCount];
+      console.log(`Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return checkProfanityAPI(text, retryCount + 1);
+    }
+
+    // Fail closed - flag for manual review if API is unavailable
+    console.warn(`Profanity API unavailable after ${MAX_RETRIES} attempts. Flagging for manual review.`);
+    return true; // Return true to trigger manual review
+  }
+}
+
+async function checkEntryProfanity(name, message) {
+  const profanityInName = name ? await checkProfanityAPI(name) : false;
+  const profanityInMessage = message ? await checkProfanityAPI(message) : false;
+
+  return {
+    hasProfanity: profanityInName || profanityInMessage,
+    profanityInName,
+    profanityInMessage
+  };
+}
+
+async function validateContribution() {
+  try {
+    const content = fs.readFileSync('ADD_YOUR_NAME.md', 'utf8');
+    const lines = content.split('\n');
+
+    const sectionIndex = lines.findIndex(line => line.includes('Add your entry below this line'));
+    if (sectionIndex === -1) {
+      setError('Could not find the entry section in ADD_YOUR_NAME.md');
+      return false;
+    }
+
+    const entrySection = lines.slice(sectionIndex + 1).join('\n').trim();
+    const simpleFormatData = parseSimpleFormat(entrySection);
+    let newEntry, username, name, message;
+
+    if (simpleFormatData) {
+      // Simple format processing
+      const { name: parsedName, username: parsedUsername, message: parsedMessage } = simpleFormatData;
+      username = sanitizeInput(parsedUsername);
+      name = sanitizeInput(parsedName);
+      message = parsedMessage ? sanitizeInput(parsedMessage) : '';
+      const messageText = message ? ` - ${message}` : '';
+      newEntry = `[${name}](https://github.com/${username})${messageText}`;
+
+      // Validate the generated entry format
+      const validation = validateFormat(newEntry);
+      if (!validation.valid) {
+        setError(validation.error);
+        return false;
+      }
+
+      // Use the converted entry if available (simple format was converted to markdown)
+      newEntry = validation.entry || newEntry;
+      username = sanitizeInput(validation.username);
+      name = sanitizeInput(validation.name);
+      message = validation.message ? sanitizeInput(validation.message) : '';
+    } else {
+      // Legacy markdown format processing
+      const trimmedLines = lines.filter(line => line.trim());
+      for (let i = trimmedLines.length - 1; i >= 0; i--) {
+        if (ENTRY_REGEX.test(trimmedLines[i])) {
+          newEntry = trimmedLines[i];
+          break;
+        }
+      }
+
+      if (!newEntry) {
+        setError('Your entry is not in the correct format. Please use: Name: Your Name, Username: your-username, Message: Optional message (or the markdown link format)');
+        return false;
+      }
+
+      const validation = validateFormat(newEntry);
+      if (!validation.valid) {
+        setError(validation.error);
+        return false;
+      }
+
+      // Use the converted entry if available
+      newEntry = validation.entry || newEntry;
+      username = sanitizeInput(validation.username);
+      name = sanitizeInput(validation.name);
+      message = validation.message ? sanitizeInput(validation.message) : '';
+    }
+
+    // Check for existing contributor (except maintainers)
+    if (!MAINTAINERS.includes(username) && checkExistingContributor(username)) {
+      setError(`@${username} has already been added to the contributors list.`);
+      return false;
+    }
+
+    // Check for profanity
+    const profanityCheck = await checkEntryProfanity(name, message);
+
+    setOutput('valid', 'true');
+    setOutput('entry', newEntry);
+    setOutput('username', username);
+    setOutput('name', name);
+    setOutput('message', message || '');
+    setOutput('profanity_detected', profanityCheck.hasProfanity ? 'true' : 'false');
+    setOutput('profanity_in_name', profanityCheck.profanityInName ? 'true' : 'false');
+    setOutput('profanity_in_message', profanityCheck.profanityInMessage ? 'true' : 'false');
+
+    if (profanityCheck.hasProfanity) {
+      console.log('⚠️  Potential profanity detected in contribution');
+      if (profanityCheck.profanityInName) {
+        console.log('   - Detected in name');
+      }
+      if (profanityCheck.profanityInMessage) {
+        console.log('   - Detected in message');
+      }
+    } else {
+      console.log('✅ Contribution validated successfully!');
+    }
+
+    return true;
+
+  } catch (error) {
+    setError(`Validation failed: ${error.message}`);
+    return false;
+  }
+}
+
+// Run validation
+validateContribution().then(success => {
+  process.exit(success ? 0 : 1);
+}).catch(error => {
+  console.error('Unexpected error:', error);
+  process.exit(1);
+});
