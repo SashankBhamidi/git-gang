@@ -1,0 +1,194 @@
+name: Process Contribution
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+    branches: [master]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: contribution-processing-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+  checks: read
+
+jobs:
+  validate-and-process:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+      checks: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version: '18'
+
+    - name: Create labels if they don't exist
+      run: |
+        gh label create "automerge" --description "Automatically merge approved PRs" --color "0E8A16" || echo "automerge label exists"
+        gh label create "moderation" --description "Requires moderation review" --color "D93F0B" || echo "moderation label exists"
+        gh label create "urgent" --description "Requires immediate attention" --color "FF0000" || echo "urgent label exists"
+        gh label create "help" --description "Help needed" --color "008672" || echo "help label exists"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Check only ADD_YOUR_NAME.md is modified
+      id: file-check
+      run: |
+        files_changed=$(git diff --name-only origin/master...${{ github.event.pull_request.head.sha }})
+        file_count=$(echo "$files_changed" | wc -l)
+        files_list=$(echo "$files_changed" | tr '\n' ', ' | sed 's/,/, /g' | sed 's/, $//')
+
+        if [ "$files_changed" = "ADD_YOUR_NAME.md" ] && [ "$file_count" = "1" ]; then
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "is_contribution=true" >> $GITHUB_OUTPUT
+        elif echo "$files_changed" | grep -q "ADD_YOUR_NAME.md"; then
+          echo "valid=false" >> $GITHUB_OUTPUT
+          echo "is_contribution=true" >> $GITHUB_OUTPUT
+          echo "error_message=Only ADD_YOUR_NAME.md should be modified for contributions. Found changes in: $files_list" >> $GITHUB_OUTPUT
+        else
+          echo "valid=false" >> $GITHUB_OUTPUT
+          echo "is_contribution=false" >> $GITHUB_OUTPUT
+          echo "error_message=This PR does not appear to be a contribution. No changes to ADD_YOUR_NAME.md found." >> $GITHUB_OUTPUT
+        fi
+
+    - name: Comprehensive validation and profanity check
+      id: validate
+      if: steps.file-check.outputs.valid == 'true'
+      continue-on-error: true
+      run: node scripts/comprehensive-validation.js
+
+    - name: Verify GitHub username matches PR author
+      if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true'
+      id: username-check
+      run: |
+        PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+        ENTRY_USERNAME="${{ steps.validate.outputs.username }}"
+
+        if [ "$PR_AUTHOR" != "$ENTRY_USERNAME" ]; then
+          echo "valid=false" >> $GITHUB_OUTPUT
+          echo "error=Username mismatch: Your GitHub username is @$PR_AUTHOR but you entered @$ENTRY_USERNAME. Please use your own GitHub username." >> $GITHUB_OUTPUT
+          echo "❌ Username validation failed"
+        else
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "✅ Username matches PR author"
+        fi
+
+    - name: Approve and comment on valid contribution
+      if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true' && steps.username-check.outputs.valid == 'true'
+      run: |
+        # Create comment body in temp file to handle special characters
+        cat > /tmp/approval-comment.md << 'COMMENT_EOF'
+        ## You're all set!
+
+        Your entry looks good:
+        - **Entry:** `ENTRY_PLACEHOLDER`
+        - **Username:** `USERNAME_PLACEHOLDER`
+
+        Everything checked out - format is correct, no duplicates found, content looks clean.
+
+        This PR is ready to merge. Once it's merged, you'll be automatically added to the contributors list.
+        COMMENT_EOF
+
+        # Replace placeholders
+        sed -i "s|ENTRY_PLACEHOLDER|${{ steps.validate.outputs.entry }}|g" /tmp/approval-comment.md
+        sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/approval-comment.md
+
+        gh pr comment ${{ github.event.number }} --body-file /tmp/approval-comment.md
+        echo "Validation complete - ready for manual merge!"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Create moderation issue for profanity
+      if: steps.validate.outputs.profanity_detected == 'true'
+      run: |
+        # Create issue body in temp file to handle special characters
+        cat > /tmp/moderation-issue.md << 'ISSUE_EOF'
+        Content filter flagged this entry before merge.
+
+        - Entry: ENTRY_PLACEHOLDER
+        - Username: @USERNAME_PLACEHOLDER
+        - PR: #PR_NUMBER_PLACEHOLDER
+        - Name: NAME_PLACEHOLDER
+        - Message: MESSAGE_PLACEHOLDER
+
+        Flagged in name: NAME_FLAG_PLACEHOLDER
+        Flagged in message: MESSAGE_FLAG_PLACEHOLDER
+
+        Take a look and decide what to do.
+
+        - [ ] Reviewed
+        - [ ] Handled
+        ISSUE_EOF
+
+        # Replace placeholders
+        sed -i "s|ENTRY_PLACEHOLDER|${{ steps.validate.outputs.entry }}|g" /tmp/moderation-issue.md
+        sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/moderation-issue.md
+        sed -i "s|PR_NUMBER_PLACEHOLDER|${{ github.event.number }}|g" /tmp/moderation-issue.md
+        sed -i "s|NAME_PLACEHOLDER|${{ steps.validate.outputs.name }}|g" /tmp/moderation-issue.md
+        sed -i "s|MESSAGE_PLACEHOLDER|${{ steps.validate.outputs.message }}|g" /tmp/moderation-issue.md
+        sed -i "s|NAME_FLAG_PLACEHOLDER|${{ steps.validate.outputs.profanity_in_name }}|g" /tmp/moderation-issue.md
+        sed -i "s|MESSAGE_FLAG_PLACEHOLDER|${{ steps.validate.outputs.profanity_in_message }}|g" /tmp/moderation-issue.md
+
+        gh issue create --title "Review entry from @${{ steps.validate.outputs.username }}" \
+          --body-file /tmp/moderation-issue.md \
+          --label "moderation,urgent" \
+          --assignee SashankBhamidi
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Request review for unauthorized file changes
+      if: steps.file-check.outputs.valid == 'false' && steps.file-check.outputs.is_contribution == 'true'
+      run: |
+        gh pr edit ${{ github.event.number }} --add-reviewer SashankBhamidi
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Comment on validation issues
+      if: |
+        (steps.file-check.outputs.valid == 'false' ||
+         steps.validate.outputs.valid == 'false' ||
+         steps.validate.outputs.profanity_detected == 'true' ||
+         steps.username-check.outputs.valid == 'false') &&
+        steps.file-check.outputs.is_contribution == 'true'
+      run: |
+        if [ "${{ steps.file-check.outputs.valid }}" == "false" ]; then
+          gh pr comment ${{ github.event.number }} --body $'## Unauthorized file changes detected\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nContributions should only modify ADD_YOUR_NAME.md. This PR has been flagged for manual review.'
+        elif [ "${{ steps.validate.outputs.valid }}" == "false" ]; then
+          # Check if it's a duplicate entry
+          if echo "${{ steps.validate.outputs.error_message }}" | grep -q "already been added"; then
+            gh pr comment ${{ github.event.number }} --body $'## Already a contributor!\n\nLooks like you\'ve already joined the Git Gang - your name is already in the contributors list.\n\nThanks for your enthusiasm, but we can only add each person once. Closing this PR.'
+            gh pr close ${{ github.event.number }}
+          else
+            gh pr comment ${{ github.event.number }} --body $'## Needs a small fix\n\nThere\'s an issue with your entry:\n\n**Issue:** ${{ steps.validate.outputs.error_message }}\n\nUpdate it and the validation will run again automatically.'
+          fi
+        elif [ "${{ steps.username-check.outputs.valid }}" == "false" ]; then
+          gh pr comment ${{ github.event.number }} --body $'## Username mismatch\n\nYour GitHub username is **@${{ github.event.pull_request.user.login }}** but you entered **`@${{ steps.validate.outputs.username }}`**.\n\nPlease update your entry to use your own GitHub username.'
+        elif [ "${{ steps.validate.outputs.profanity_detected }}" == "true" ]; then
+          gh pr comment ${{ github.event.number }} --body $'## Flagged for review\n\nYour entry was flagged by our content filter and needs manual review. We\'ll take a look shortly!'
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Report workflow completion
+      if: always()
+      run: |
+        echo "Workflow completed for PR #${{ github.event.number }}"
