@@ -1,0 +1,274 @@
+name: Post-Merge Processing
+
+on:
+  push:
+    branches: [master]
+    paths: ['ADD_YOUR_NAME.md']
+
+concurrency:
+  group: post-merge-processing
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process-merged-contribution:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.PAT_TOKEN || github.token }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version: '18'
+
+    - name: Setup Git configuration
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Check if ADD_YOUR_NAME.md has new content
+      id: check-content
+      run: |
+        content=$(cat ADD_YOUR_NAME.md)
+        commit_message="${{ github.event.head_commit.message }}"
+
+        # Extract PR number from commit message (format: "Title (#123)")
+        if echo "$commit_message" | grep -qE '\(#[0-9]+\)'; then
+          pr_number=$(echo "$commit_message" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#')
+          echo "Found PR number: $pr_number"
+
+          # Get PR author (may fail if PR is closed/merged and permissions are limited)
+          if pr_author=$(gh pr view $pr_number --json author --jq '.author.login' 2>/dev/null); then
+            echo "PR author: $pr_author"
+
+            # Skip processing if PR author is SashankBhamidi (maintainer's custom contributions)
+            if [ "$pr_author" = "SashankBhamidi" ]; then
+              echo "has_new_entry=false" >> $GITHUB_OUTPUT
+              echo "Skipping processing for maintainer's custom contribution"
+              exit 0
+            fi
+          else
+            echo "Could not determine PR author (PR may be closed), proceeding with normal checks"
+          fi
+        else
+          echo "No PR number found in commit message, proceeding with normal checks"
+        fi
+
+        # Check for simple format (Name:/Username:/Message:) or markdown link format
+        if echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "Name:" && \
+           echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "Username:" && \
+           ! echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "^Name:$"; then
+          echo "has_new_entry=true" >> $GITHUB_OUTPUT
+          echo "New contribution detected for processing (simple format)"
+        elif echo "$content" | grep -A 10 "Add your entry below this line" | grep -qE '\[.+\]\(https://github.com/[a-zA-Z0-9_-]+\)'; then
+          echo "has_new_entry=true" >> $GITHUB_OUTPUT
+          echo "New contribution detected for processing (markdown format)"
+        else
+          echo "has_new_entry=false" >> $GITHUB_OUTPUT
+          echo "No new contribution to process"
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Process merged contribution
+      if: steps.check-content.outputs.has_new_entry == 'true'
+      id: process
+      run: |
+        echo "Processing contribution..."
+        node scripts/comprehensive-validation.js
+
+    - name: Apply file changes
+      if: steps.check-content.outputs.has_new_entry == 'true' && steps.process.outputs.valid == 'true'
+      id: apply-changes
+      run: |
+        entry="${{ steps.process.outputs.entry }}"
+        username="${{ steps.process.outputs.username }}"
+
+        echo "Processing entry: $entry"
+        echo "Username: $username"
+
+        # Create backup of current state for rollback
+        git rev-parse HEAD > .git-backup-commit
+        cp CONTRIBUTORS.md CONTRIBUTORS.md.backup || echo "No CONTRIBUTORS.md to backup"
+        cp README.md README.md.backup || echo "No README.md to backup"
+        cp ADD_YOUR_NAME.md ADD_YOUR_NAME.md.backup || echo "No ADD_YOUR_NAME.md to backup"
+
+        # Process the contribution
+        if ! node scripts/process-contribution.js "$entry"; then
+          echo "Failed to process contribution"
+          exit 1
+        fi
+
+        if ! node scripts/sort-contributors.js; then
+          echo "Failed to sort contributors"
+          exit 1
+        fi
+
+        if ! node scripts/update-badge.js; then
+          echo "Failed to update badge"
+          exit 1
+        fi
+
+        if ! node scripts/reset-staging.js; then
+          echo "Failed to reset staging"
+          exit 1
+        fi
+
+        # Verify files were modified correctly
+        if ! git diff --quiet HEAD CONTRIBUTORS.md; then
+          echo "CONTRIBUTORS.md was successfully updated"
+        else
+          echo "ERROR: CONTRIBUTORS.md was not updated"
+          exit 1
+        fi
+
+        # Commit all changes
+        git add CONTRIBUTORS.md README.md ADD_YOUR_NAME.md
+        if ! git commit -m "Process contribution from @$username"; then
+          echo "Failed to commit changes"
+          exit 1
+        fi
+
+        # Configure git with token for authenticated push
+        # Try PAT_TOKEN first (can bypass branch protection), fall back to github.token
+        GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
+        git remote set-url origin https://x-access-token:${GIT_TOKEN}@github.com/${{ github.repository }}.git
+
+        # Try to push
+        if ! git push origin master; then
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "ERROR: Push failed due to branch protection rules"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Choose ONE of these solutions:"
+          echo ""
+          echo "✅ OPTION 1 (Recommended): Allow github-actions[bot] to push"
+          echo "   1. Go to: Settings → Branches → Branch protection rule for 'master'"
+          echo "   2. Find: 'Restrict who can push to matching branches'"
+          echo "   3. Click 'Add apps and users'"
+          echo "   4. Add: github-actions[bot]"
+          echo "   5. Save changes"
+          echo ""
+          echo "✅ OPTION 2: Use a Personal Access Token"
+          echo "   1. Create a fine-grained PAT at: https://github.com/settings/tokens?type=beta"
+          echo "   2. Give it 'contents: write' permission for this repository"
+          echo "   3. Add it as a repository secret named 'PAT_TOKEN'"
+          echo "   4. The workflow will automatically detect and use it"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          exit 1
+        fi
+
+        echo "Successfully processed contribution for @$username"
+        echo "success=true" >> $GITHUB_OUTPUT
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "Rolling back changes due to processing failure"
+
+        # Restore backup files if they exist
+        if [ -f "CONTRIBUTORS.md.backup" ]; then
+          mv CONTRIBUTORS.md.backup CONTRIBUTORS.md
+          echo "Restored CONTRIBUTORS.md from backup"
+        fi
+
+        if [ -f "README.md.backup" ]; then
+          mv README.md.backup README.md
+          echo "Restored README.md from backup"
+        fi
+
+        if [ -f "ADD_YOUR_NAME.md.backup" ]; then
+          mv ADD_YOUR_NAME.md.backup ADD_YOUR_NAME.md
+          echo "Restored ADD_YOUR_NAME.md from backup"
+        fi
+
+        # Reset to backup commit if available and configure git
+        if [ -f ".git-backup-commit" ]; then
+          backup_commit=$(cat .git-backup-commit)
+          git reset --hard "$backup_commit"
+
+          # Configure git with token for rollback push (use PAT if available)
+          GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
+          git remote set-url origin https://x-access-token:${GIT_TOKEN}@github.com/${{ github.repository }}.git
+
+          # Try to push the rollback (won't work if branch protection blocks it, but we tried)
+          if git push --force-with-lease origin master; then
+            echo "Successfully reset repository to backup commit: $backup_commit"
+          else
+            echo "Failed to push rollback - manual intervention required"
+            echo "Backup commit SHA: $backup_commit"
+            exit 1
+          fi
+        fi
+
+        # Clean up backup files
+        rm -f CONTRIBUTORS.md.backup README.md.backup ADD_YOUR_NAME.md.backup .git-backup-commit
+
+    - name: Create failure issue
+      if: failure()
+      run: |
+        # Create labels if they don't exist
+        gh label create "urgent" --description "Requires immediate attention" --color "FF0000" || echo "urgent label exists"
+        gh label create "help" --description "Help needed" --color "008672" || echo "help label exists"
+
+        # Get the entry details if available
+        entry="${{ steps.process.outputs.entry }}"
+        username="${{ steps.process.outputs.username }}"
+        name="${{ steps.process.outputs.name }}"
+
+        # Create issue body in a temporary file to avoid YAML escaping issues
+        cat > /tmp/issue-body.md << 'ISSUE_EOF'
+        ## Post-merge automation failed
+
+        **Status:** The merge was reverted automatically via rollback mechanism.
+
+        ### What happened
+        The post-merge processing workflow encountered an error and failed. The repository has been automatically rolled back to its previous state.
+
+        ### Contribution Details
+        - **Entry:** `ENTRY_PLACEHOLDER`
+        - **Username:** @USERNAME_PLACEHOLDER
+        - **Name:** NAME_PLACEHOLDER
+        - **PR:** PR_PLACEHOLDER
+
+        ### What was done automatically
+        - Restored backup files (CONTRIBUTORS.md, README.md, ADD_YOUR_NAME.md)
+        - Reset repository to pre-merge commit
+        - Force pushed rollback to master
+
+        ### Workflow Run
+        - **Run ID:** RUN_ID_PLACEHOLDER
+        - **Direct link:** https://github.com/REPO_PLACEHOLDER/actions/runs/RUN_ID_PLACEHOLDER
+        ISSUE_EOF
+
+        # Replace placeholders with actual values (escape newlines in PR message)
+        pr_message=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
+        sed -i "s|ENTRY_PLACEHOLDER|${entry:-Not captured}|g" /tmp/issue-body.md
+        sed -i "s|USERNAME_PLACEHOLDER|${username:-unknown}|g" /tmp/issue-body.md
+        sed -i "s|NAME_PLACEHOLDER|${name:-Not captured}|g" /tmp/issue-body.md
+        sed -i "s|PR_PLACEHOLDER|${pr_message}|g" /tmp/issue-body.md
+        sed -i "s|RUN_ID_PLACEHOLDER|${{ github.run_id }}|g" /tmp/issue-body.md
+        sed -i "s|REPO_PLACEHOLDER|${{ github.repository }}|g" /tmp/issue-body.md
+
+        gh issue create --title "Post-merge workflow failed" --body-file /tmp/issue-body.md --label "urgent,help" --assignee SashankBhamidi
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+
+
+    - name: Report processing completion
+      if: always()
+      run: |
+        echo "Post-merge processing completed"
