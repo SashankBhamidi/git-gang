@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 README
+    url: https://github.com/SashankBhamidi/git-gang/blob/master/README.md
+    about: Read the contribution guidelines and project info
