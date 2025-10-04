@@ -178,6 +178,7 @@ jobs:
           gh pr edit ${{ github.event.number }} --add-label "invalid"
         elif [ "${{ steps.validate.outputs.profanity_detected }}" == "true" ]; then
           gh pr comment ${{ github.event.number }} --body $'## Flagged for review\n\nYour entry was flagged by our content filter and needs manual review. We\'ll take a look shortly!'
+          gh pr edit ${{ github.event.number }} --add-label "moderation"
         fi
       env:
         GH_TOKEN: ${{ github.token }}
