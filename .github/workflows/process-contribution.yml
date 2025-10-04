@@ -153,6 +153,14 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
 
+    - name: Handle non-contribution PRs
+      if: steps.file-check.outputs.is_contribution == 'false'
+      run: |
+        gh pr comment ${{ github.event.number }} --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
+        gh pr edit ${{ github.event.number }} --add-label "not-a-contribution"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
     - name: Comment on validation issues
       if: |
         (steps.file-check.outputs.valid == 'false' ||
@@ -163,6 +171,7 @@ jobs:
       run: |
         if [ "${{ steps.file-check.outputs.valid }}" == "false" ]; then
           gh pr comment ${{ github.event.number }} --body $'## Unauthorized file changes detected\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nContributions should only modify ADD_YOUR_NAME.md. This PR has been flagged for manual review.'
+          gh pr edit ${{ github.event.number }} --add-label "unauthorized"
         elif [ "${{ steps.validate.outputs.valid }}" == "false" ]; then
           # Check if it's a duplicate entry
           if echo "${{ steps.validate.outputs.error_message }}" | grep -q "already been added"; then
