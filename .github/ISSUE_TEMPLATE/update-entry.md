@@ -3,7 +3,7 @@ name: Update My Entry
 about: Update your existing Git Gang entry
 title: 'Update entry for @username'
 labels: ['help']
-assignees: ''
+assignees: ['SashankBhamidi']
 ---
 
 # Update My Entry
