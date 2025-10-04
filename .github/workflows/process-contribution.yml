@@ -104,6 +104,7 @@ jobs:
         sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/approval-comment.md
 
         gh pr comment ${{ github.event.number }} --body-file /tmp/approval-comment.md
+        gh pr edit ${{ github.event.number }} --add-label "approved"
         echo "Validation complete - ready for manual merge!"
       env:
         GH_TOKEN: ${{ github.token }}
