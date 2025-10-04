@@ -1,6 +1,6 @@
 # Git Gang
 
-[![Contributors](https://img.shields.io/badge/contributors-0-brightgreen.svg?style=flat-square)](CONTRIBUTORS.md)
+[![Contributors](https://img.shields.io/badge/contributors-1-brightgreen.svg?style=flat-square)](CONTRIBUTORS.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](ADD_YOUR_NAME.md)
 
 We're building the biggest contributors list on GitHub. Join developers who've added their name to this growing community.
