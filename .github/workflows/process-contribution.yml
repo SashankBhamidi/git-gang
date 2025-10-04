@@ -41,15 +41,6 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Create labels if they don't exist
-      run: |
-        gh label create "automerge" --description "Automatically merge approved PRs" --color "0E8A16" || echo "automerge label exists"
-        gh label create "moderation" --description "Requires moderation review" --color "D93F0B" || echo "moderation label exists"
-        gh label create "urgent" --description "Requires immediate attention" --color "FF0000" || echo "urgent label exists"
-        gh label create "help" --description "Help needed" --color "008672" || echo "help label exists"
-      env:
-        GH_TOKEN: ${{ github.token }}
-
     - name: Check only ADD_YOUR_NAME.md is modified
       id: file-check
       run: |
@@ -176,12 +167,15 @@ jobs:
           # Check if it's a duplicate entry
           if echo "${{ steps.validate.outputs.error_message }}" | grep -q "already been added"; then
             gh pr comment ${{ github.event.number }} --body $'## Already a contributor!\n\nLooks like you\'ve already joined the Git Gang - your name is already in the contributors list.\n\nThanks for your enthusiasm, but we can only add each person once. Closing this PR.'
+            gh pr edit ${{ github.event.number }} --add-label "duplicate"
             gh pr close ${{ github.event.number }}
           else
             gh pr comment ${{ github.event.number }} --body $'## Needs a small fix\n\nThere\'s an issue with your entry:\n\n**Issue:** ${{ steps.validate.outputs.error_message }}\n\nUpdate it and the validation will run again automatically.'
+            gh pr edit ${{ github.event.number }} --add-label "invalid"
           fi
         elif [ "${{ steps.username-check.outputs.valid }}" == "false" ]; then
           gh pr comment ${{ github.event.number }} --body $'## Username mismatch\n\nYour GitHub username is **@${{ github.event.pull_request.user.login }}** but you entered **`@${{ steps.validate.outputs.username }}`**.\n\nPlease update your entry to use your own GitHub username.'
+          gh pr edit ${{ github.event.number }} --add-label "invalid"
         elif [ "${{ steps.validate.outputs.profanity_detected }}" == "true" ]; then
           gh pr comment ${{ github.event.number }} --body $'## Flagged for review\n\nYour entry was flagged by our content filter and needs manual review. We\'ll take a look shortly!'
         fi

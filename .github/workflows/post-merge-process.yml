@@ -219,10 +219,6 @@ jobs:
     - name: Create failure issue
       if: failure()
       run: |
-        # Create labels if they don't exist
-        gh label create "urgent" --description "Requires immediate attention" --color "FF0000" || echo "urgent label exists"
-        gh label create "help" --description "Help needed" --color "008672" || echo "help label exists"
-
         # Get the entry details if available
         entry="${{ steps.process.outputs.entry }}"
         username="${{ steps.process.outputs.username }}"
@@ -262,7 +258,7 @@ jobs:
         sed -i "s|RUN_ID_PLACEHOLDER|${{ github.run_id }}|g" /tmp/issue-body.md
         sed -i "s|REPO_PLACEHOLDER|${{ github.repository }}|g" /tmp/issue-body.md
 
-        gh issue create --title "Post-merge workflow failed" --body-file /tmp/issue-body.md --label "urgent,help" --assignee SashankBhamidi
+        gh issue create --title "Post-merge workflow failed" --body-file /tmp/issue-body.md --label "urgent,workflow-failure" --assignee SashankBhamidi
       env:
         GH_TOKEN: ${{ github.token }}
         GITHUB_TOKEN: ${{ github.token }}
