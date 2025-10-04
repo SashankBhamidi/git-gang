@@ -28,7 +28,7 @@ See everyone who's joined: [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
 ## Need help?
 
-[Open an issue](https://github.com/SashankBhamidi/git-gang/issues/new?labels=help&template=help.md&title=Need+help+with+Git+Gang) and we'll help you out.
+[Open an issue](https://github.com/SashankBhamidi/git-gang/issues/new/choose) and we'll help you out.
 
 ## Ready?
 
