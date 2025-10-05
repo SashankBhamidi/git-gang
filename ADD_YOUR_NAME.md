@@ -6,6 +6,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name:lonelydev
-Username:some-boi
-Message:just a cool guy moving through
+Name:
+Username:
+Message:
