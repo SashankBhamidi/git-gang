@@ -17,6 +17,7 @@ permissions:
   issues: write
   actions: read
   checks: read
+  statuses: write
 
 jobs:
   validate-and-process:
@@ -107,7 +108,7 @@ jobs:
         gh pr edit ${{ github.event.number }} --add-label "approved"
         echo "Validation complete - ready for manual merge!"
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Create moderation issue for profanity
       if: steps.validate.outputs.profanity_detected == 'true'
@@ -145,14 +146,14 @@ jobs:
           --label "moderation,urgent" \
           --assignee SashankBhamidi
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Request review for unauthorized file changes
       if: steps.file-check.outputs.valid == 'false' && steps.file-check.outputs.is_contribution == 'true'
       run: |
         gh pr edit ${{ github.event.number }} --add-reviewer SashankBhamidi
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Handle non-contribution PRs
       if: steps.file-check.outputs.is_contribution == 'false'
@@ -160,7 +161,7 @@ jobs:
         gh pr comment ${{ github.event.number }} --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
         gh pr edit ${{ github.event.number }} --add-label "not-a-contribution"
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Comment on validation issues
       if: |
@@ -191,7 +192,7 @@ jobs:
           gh pr edit ${{ github.event.number }} --add-label "moderation"
         fi
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Report workflow completion
       if: always()
