@@ -6,6 +6,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name: Matei Budiu 
-Username: aehmttw
-Message: Hello world!!!
+Name:
+Username:
+Message:
