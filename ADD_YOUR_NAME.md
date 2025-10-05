@@ -6,6 +6,7 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name:
-Username:
-Message:
+Name: Shankypedia
+Username: shankypedia
+Message: What's good?
+
