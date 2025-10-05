@@ -6,4 +6,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-[Vihaan Zutshi](https://github.com/vihaanified) - Can't wait to see this grow!
+Name:
+Username:
+Message:
