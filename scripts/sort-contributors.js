@@ -15,11 +15,12 @@ function sortContributors() {
     const otherLines = [];
 
     for (const line of lines) {
-      if (line.match(/^\[([^\]]+)\]\(https:\/\/github\.com\/([^)]+)\)/)) {
-        const nameMatch = line.match(/^\[([^\]]+)\]/);
-        const name = nameMatch[1];
-        const usernameMatch = line.match(/https:\/\/github\.com\/([^)]+)\)/);
-        const username = usernameMatch ? usernameMatch[1] : '';
+      // Match both "- [Name]..." and "[Name]..." formats
+      const entryMatch = line.match(/^-?\s*\[([^\]]+)\]\(https:\/\/github\.com\/([^)]+)\)/);
+
+      if (entryMatch) {
+        const name = entryMatch[1];
+        const username = entryMatch[2];
 
         if (MAINTAINERS.includes(username)) {
           maintainerEntries.push(line);

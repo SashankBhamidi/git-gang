@@ -6,4 +6,4 @@ Welcome to the Git Gang! These amazing developers have joined our community.
 
 Total contributors: 1
 
-[Sashank Bhamidi](https://github.com/SashankBhamidi) - Creator of Git Gang - building GitHub's biggest contributors list!
+- [Sashank Bhamidi](https://github.com/SashankBhamidi) - Creator of Git Gang - building GitHub's biggest contributors list!
