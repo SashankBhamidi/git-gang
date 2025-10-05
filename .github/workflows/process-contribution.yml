@@ -9,7 +9,7 @@ on:
 
 concurrency:
   group: contribution-processing-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: write
