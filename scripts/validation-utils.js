@@ -53,9 +53,10 @@ function capitalizeWords(str) {
 }
 
 function parseSimpleFormat(text) {
-  const nameMatch = text.match(/Name:\s*(.+?)(?:\r?\n|$)/i);
-  const usernameMatch = text.match(/Username:\s*(.+?)(?:\r?\n|$)/i);
-  const messageMatch = text.match(/Message:\s*(.*?)(?:\r?\n|$)/i);
+  // Support both list format (- Name:) and plain format (Name:)
+  const nameMatch = text.match(/(?:-\s*)?Name:\s*(.+?)(?:\r?\n|$)/i);
+  const usernameMatch = text.match(/(?:-\s*)?Username:\s*(.+?)(?:\r?\n|$)/i);
+  const messageMatch = text.match(/(?:-\s*)?Message:\s*(.*?)(?:\r?\n|$)/i);
 
   if (!nameMatch || !usernameMatch) {
     return null;
