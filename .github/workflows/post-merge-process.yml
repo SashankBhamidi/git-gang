@@ -34,8 +34,8 @@ jobs:
 
     - name: Setup Git configuration
       run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "Sashank Bhamidi"
+        git config --global user.email "sashankbhamidi@users.noreply.github.com"
 
     - name: Check if ADD_YOUR_NAME.md has new content
       id: check-content
@@ -260,8 +260,7 @@ jobs:
 
         gh issue create --title "Post-merge workflow failed" --body-file /tmp/issue-body.md --label "urgent,workflow-failure" --assignee SashankBhamidi
       env:
-        GH_TOKEN: ${{ github.token }}
-        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
     - name: Report processing completion
