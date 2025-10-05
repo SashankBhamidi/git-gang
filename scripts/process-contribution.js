@@ -7,7 +7,7 @@ function addToContributors(entry) {
   try {
     let contributors = fs.readFileSync('CONTRIBUTORS.md', 'utf8');
 
-    contributors = contributors.trim() + '\n' + entry + '\n';
+    contributors = contributors.trim() + '\n\n' + entry + '\n';
 
     fs.writeFileSync('CONTRIBUTORS.md', contributors);
     console.log('Entry added to CONTRIBUTORS.md');
