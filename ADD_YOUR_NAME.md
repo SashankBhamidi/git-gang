@@ -6,6 +6,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name:Raunak Mishra
-Username:raunak-devs
-Message:Just another dev pushing code and pulling dreams! 💻🔥
+Name:
+Username:
+Message:
