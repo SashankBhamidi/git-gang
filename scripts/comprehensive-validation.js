@@ -67,6 +67,25 @@ async function validateContribution() {
     const content = fs.readFileSync('ADD_YOUR_NAME.md', 'utf8');
     const lines = content.split('\n');
 
+    // Check if file has required template structure
+    const hasTitle = content.includes('# Add Your Name Here');
+    const hasInstructions = content.includes('Want to join the Git Gang?');
+    const hasSectionMarker = content.includes('Add your entry below this line');
+
+    if (!hasTitle || !hasInstructions || !hasSectionMarker) {
+      setError('ADD_YOUR_NAME.md template structure is missing. Please keep the original template and only fill in your details below "Add your entry below this line".');
+      return false;
+    }
+
+    // Check if the entry section has the list format markers
+    const entryContent = content.substring(content.indexOf('Add your entry below this line'));
+    const hasListFormat = entryContent.includes('- Name:') && entryContent.includes('- Username:') && entryContent.includes('- Message:');
+
+    if (!hasListFormat) {
+      setError('Please use the list format: "- Name:", "- Username:", "- Message:" (with dashes). Do not remove the template structure.');
+      return false;
+    }
+
     const sectionIndex = lines.findIndex(line => line.includes('Add your entry below this line'));
     if (sectionIndex === -1) {
       setError('Could not find the entry section in ADD_YOUR_NAME.md');

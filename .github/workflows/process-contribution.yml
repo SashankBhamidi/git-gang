@@ -107,6 +107,10 @@ jobs:
         sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/approval-comment.md
 
         gh pr comment ${{ github.event.number }} --body-file /tmp/approval-comment.md
+
+        # Remove invalid label if it exists (user fixed their entry)
+        gh pr edit ${{ github.event.number }} --remove-label "invalid" 2>/dev/null || true
+
         gh pr edit ${{ github.event.number }} --add-label "approved"
 
         # Auto-merge approved contributions
