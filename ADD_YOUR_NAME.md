@@ -6,6 +6,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Ugur Ozcan
-- Username: uozcan12
-- Message: Hello Git Gang contributors!
+Name:
+Username:
+Message:
