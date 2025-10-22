@@ -22,7 +22,9 @@ permissions:
 jobs:
   validate-and-process:
     # Only run on pull_request_target or pull_request_review events, skip labeled/unlabeled
-    if: (github.event_name == 'pull_request_target' || github.event_name == 'pull_request_review') && (github.event.action != 'labeled' && github.event.action != 'unlabeled')
+    if: |
+      (github.event_name == 'pull_request_target' && github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+      (github.event_name == 'pull_request_review')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -99,13 +101,10 @@ jobs:
 
           # Only add link if no contribution issue is linked
           if [ "$HAS_CONTRIBUTION_LINK" = false ]; then
-            NEW_BODY=$(cat <<EOF
-${CURRENT_BODY}
-
-Resolves #${ISSUE_NUMBER}
-EOF
-)
-            gh pr edit $PR_NUMBER --body "$NEW_BODY"
+            echo "$CURRENT_BODY" > /tmp/pr-body.txt
+            echo "" >> /tmp/pr-body.txt
+            echo "Resolves #${ISSUE_NUMBER}" >> /tmp/pr-body.txt
+            gh pr edit $PR_NUMBER --body-file /tmp/pr-body.txt
             echo "✓ Linked PR to contribution issue #$ISSUE_NUMBER"
           fi
         else
