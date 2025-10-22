@@ -8,7 +8,7 @@ on:
     types: [submitted]
 
 concurrency:
-  group: contribution-processing-${{ github.event.pull_request.number }}
+  group: contribution-processing-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 permissions:
@@ -21,8 +21,8 @@ permissions:
 
 jobs:
   validate-and-process:
-    # Skip if triggered by labeled/unlabeled events
-    if: github.event_name != 'pull_request_target' || (github.event.action != 'labeled' && github.event.action != 'unlabeled')
+    # Only run on pull_request_target or pull_request_review events, skip labeled/unlabeled
+    if: (github.event_name == 'pull_request_target' || github.event_name == 'pull_request_review') && (github.event.action != 'labeled' && github.event.action != 'unlabeled')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -32,14 +32,7 @@ jobs:
       checks: read
 
     steps:
-    - name: Skip if push event
-      if: github.event_name == 'push'
-      run: |
-        echo "This workflow only runs on pull_request_target events"
-        exit 0
-
     - name: Checkout code
-      if: github.event_name != 'push'
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         fetch-depth: 0
@@ -47,7 +40,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Node.js
-      if: github.event_name != 'push'
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version: '18'
