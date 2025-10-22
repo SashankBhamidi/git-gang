@@ -21,8 +21,8 @@ permissions:
 
 jobs:
   validate-and-process:
-    # Skip if triggered by labeled/unlabeled events (avoid duplicate runs when workflow adds labels)
-    if: github.event_name != 'pull_request_target' || (github.event.action != 'labeled' && github.event.action != 'unlabeled')
+    # Skip if triggered by labeled/unlabeled events OR push events
+    if: github.event_name != 'push' && (github.event_name != 'pull_request_target' || (github.event.action != 'labeled' && github.event.action != 'unlabeled'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
