@@ -20,6 +20,13 @@ permissions:
   statuses: write
 
 jobs:
+  # Dummy job to succeed on push events (prevents false failures)
+  skip-on-push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow only runs on pull requests"
+
   validate-and-process:
     # Skip if triggered by labeled/unlabeled events OR push events
     if: github.event_name != 'push' && (github.event_name != 'pull_request_target' || (github.event.action != 'labeled' && github.event.action != 'unlabeled'))
