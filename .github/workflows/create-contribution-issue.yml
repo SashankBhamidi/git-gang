@@ -79,39 +79,36 @@ jobs:
     - name: Create new contribution issue
       if: steps.check-issue.outputs.should_create == 'true'
       run: |
-        # Create issue body
-        cat > /tmp/issue-body.md << 'EOF'
-        Add your name to the contributors list.
-
-        ## How to contribute
-
-        1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
-        2. Click the edit icon
-        3. Fill out:
-           ```
-           - Name: Your Name
-           - Username: your-github-username
-           - Message: Optional message
-           ```
-        4. Open a pull request
-        5. Automation validates and merges automatically
-
-        See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details.
-        EOF
-
         # Determine labels based on current month
         CURRENT_MONTH=$(date +%m)
         if [ "$CURRENT_MONTH" = "10" ]; then
-          LABELS="good first issue,help wanted,contribution,hacktoberfest"
+          LABELS='["good first issue","help wanted","contribution","hacktoberfest"]'
           echo "October detected - adding hacktoberfest label"
         else
-          LABELS="good first issue,help wanted,contribution"
+          LABELS='["good first issue","help wanted","contribution"]'
         fi
 
-        gh issue create \
-          --title "Add your name to Git Gang" \
-          --body-file /tmp/issue-body.md \
-          --label "$LABELS"
+        # Create issue using GitHub API
+        gh api repos/${{ github.repository }}/issues \
+          --method POST \
+          --field title="Add your name to Git Gang" \
+          --field body="Add your name to the contributors list.
+
+## How to contribute
+
+1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
+2. Click the edit icon
+3. Fill out:
+   \`\`\`
+   - Name: Your Name
+   - Username: your-github-username
+   - Message: Optional message
+   \`\`\`
+4. Open a pull request
+5. Automation validates and merges automatically
+
+See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details." \
+          --raw-field labels="$LABELS"
 
         echo "✅ Created new contribution issue with labels: $LABELS"
       env:
