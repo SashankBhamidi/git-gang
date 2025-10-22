@@ -1,0 +1,120 @@
+name: Create Contribution Issue
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions:
+  issues: write
+
+jobs:
+  create-issue:
+    # Only run if PR was merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check if PR closed a good first issue
+      id: check-issue
+      run: |
+        PR_NUMBER="${{ github.event.number }}"
+
+        # Get PR body and extract issue numbers from closing keywords
+        PR_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body // ""')
+
+        # Extract issue numbers from "Closes #X", "Fixes #X", "Resolves #X" etc.
+        CLOSED_ISSUES=$(echo "$PR_BODY" | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' | grep -oE '#[0-9]+' | tr -d '#' | sort -u)
+
+        if [ -z "$CLOSED_ISSUES" ]; then
+          echo "No closing keywords found in PR body"
+          echo "should_create=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        echo "Found closing keywords for issues: $CLOSED_ISSUES"
+
+        # Check if any referenced issue has "contribution" label and was closed by THIS PR
+        FOUND_CONTRIBUTION_ISSUE=false
+        for issue_num in $CLOSED_ISSUES; do
+          echo "Checking issue #$issue_num"
+
+          # Get issue details
+          ISSUE_DATA=$(gh api "repos/${{ github.repository }}/issues/$issue_num" 2>/dev/null || echo "")
+
+          if [ -z "$ISSUE_DATA" ]; then
+            echo "Issue #$issue_num not found - skipping"
+            continue
+          fi
+
+          # Check if issue has "contribution" label
+          LABELS=$(echo "$ISSUE_DATA" | jq -r '.labels[].name')
+
+          if echo "$LABELS" | grep -q "contribution"; then
+            echo "Issue #$issue_num has 'contribution' label"
+
+            # Check if THIS PR actually closed it by looking at timeline events
+            CLOSED_BY_THIS_PR=$(gh api "repos/${{ github.repository }}/issues/$issue_num/timeline" \
+              --jq ".[] | select(.event == \"closed\" and .commit_id != null) | select(.source.issue.pull_request.number == $PR_NUMBER) | .event" \
+              2>/dev/null || echo "")
+
+            if [ -n "$CLOSED_BY_THIS_PR" ]; then
+              FOUND_CONTRIBUTION_ISSUE=true
+              echo "✓ Issue #$issue_num was closed by THIS PR"
+              break
+            else
+              echo "Issue #$issue_num was not closed by this PR (may have been closed by another PR)"
+            fi
+          fi
+        done
+
+        if [ "$FOUND_CONTRIBUTION_ISSUE" = true ]; then
+          echo "should_create=true" >> $GITHUB_OUTPUT
+          echo "Will create new contribution issue"
+        else
+          echo "should_create=false" >> $GITHUB_OUTPUT
+          echo "No 'contribution' issue was closed - skipping"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
+    - name: Create new contribution issue
+      if: steps.check-issue.outputs.should_create == 'true'
+      run: |
+        # Create issue body
+        cat > /tmp/issue-body.md << 'EOF'
+        Add your name to the contributors list.
+
+        ## How to contribute
+
+        1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
+        2. Click the edit icon
+        3. Fill out:
+           ```
+           - Name: Your Name
+           - Username: your-github-username
+           - Message: Optional message
+           ```
+        4. Open a pull request
+        5. Automation validates and merges automatically
+
+        See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details.
+        EOF
+
+        # Determine labels based on current month
+        CURRENT_MONTH=$(date +%m)
+        if [ "$CURRENT_MONTH" = "10" ]; then
+          LABELS="good first issue,help wanted,contribution,hacktoberfest"
+          echo "October detected - adding hacktoberfest label"
+        else
+          LABELS="good first issue,help wanted,contribution"
+        fi
+
+        gh issue create \
+          --title "Add your name to Git Gang" \
+          --body-file /tmp/issue-body.md \
+          --label "$LABELS"
+
+        echo "✅ Created new contribution issue with labels: $LABELS"
+      env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
