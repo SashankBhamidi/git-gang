@@ -89,27 +89,11 @@ jobs:
         fi
 
         # Create issue using GitHub API
-        gh api repos/${{ github.repository }}/issues \
-          --method POST \
-          --field title="Add your name to Git Gang" \
-          --field body="Add your name to the contributors list.
+        BODY='Add your name to the contributors list.\n\n## How to contribute\n\n1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)\n2. Click the edit icon\n3. Fill out:\n   ```\n   - Name: Your Name\n   - Username: your-github-username\n   - Message: Optional message\n   ```\n4. Open a pull request\n5. Automation validates and merges automatically\n\nSee [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details.'
 
-## How to contribute
+        echo "{\"title\":\"Add your name to Git Gang\",\"body\":\"$BODY\",\"labels\":$LABELS}" | \
+          gh api repos/${{ github.repository }}/issues --method POST --input -
 
-1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
-2. Click the edit icon
-3. Fill out:
-   \`\`\`
-   - Name: Your Name
-   - Username: your-github-username
-   - Message: Optional message
-   \`\`\`
-4. Open a pull request
-5. Automation validates and merges automatically
-
-See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details." \
-          --raw-field labels="$LABELS"
-
-        echo "✅ Created new contribution issue with labels: $LABELS"
+        echo "✅ Created new contribution issue"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
