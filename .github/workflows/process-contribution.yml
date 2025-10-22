@@ -67,11 +67,10 @@ jobs:
     - name: Link PR to an open contribution issue
       if: steps.file-check.outputs.is_contribution == 'true'
       run: |
-        # Find an open issue with "good first issue" label that's about contributions
+        # Find an open issue with "contribution" label
         ISSUE_NUMBER=$(gh issue list \
-          --label "good first issue" \
+          --label "contribution" \
           --state open \
-          --search "Add your name" \
           --json number \
           --jq '.[0].number' 2>/dev/null || echo "")
 
@@ -81,17 +80,28 @@ jobs:
           # Get current PR body
           CURRENT_BODY=$(gh pr view ${{ github.event.number }} --json body --jq '.body // ""')
 
-          # Check if PR body already has closing keywords
+          # Check if PR body already has closing keywords for a contribution issue
+          HAS_CONTRIBUTION_LINK=false
           if echo "$CURRENT_BODY" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+'; then
-            echo "PR already has closing keywords - skipping"
-          else
-            # Add closing keyword to PR body
+            # Extract the issue number
+            LINKED_ISSUE=$(echo "$CURRENT_BODY" | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' | grep -oE '#[0-9]+' | head -1 | tr -d '#')
+
+            # Check if the linked issue has "contribution" label
+            LABELS=$(gh api "repos/${{ github.repository }}/issues/$LINKED_ISSUE" --jq '.labels[].name' 2>/dev/null || echo "")
+            if echo "$LABELS" | grep -q "contribution"; then
+              HAS_CONTRIBUTION_LINK=true
+              echo "PR already links to contribution issue #$LINKED_ISSUE"
+            fi
+          fi
+
+          # Only add link if no contribution issue is linked
+          if [ "$HAS_CONTRIBUTION_LINK" = false ]; then
             NEW_BODY="${CURRENT_BODY}
 
 Resolves #${ISSUE_NUMBER}"
 
             gh pr edit ${{ github.event.number }} --body "$NEW_BODY"
-            echo "✓ Linked PR to issue #$ISSUE_NUMBER"
+            echo "✓ Linked PR to contribution issue #$ISSUE_NUMBER"
           fi
         else
           echo "No open contribution issue found - continuing without linking"
@@ -146,7 +156,15 @@ Resolves #${ISSUE_NUMBER}"
         # Remove invalid label if it exists (user fixed their entry)
         gh pr edit ${{ github.event.number }} --remove-label "invalid" 2>/dev/null || true
 
+        # Add approved label
         gh pr edit ${{ github.event.number }} --add-label "approved"
+
+        # Add Hacktoberfest label if it's October
+        CURRENT_MONTH=$(date +%m)
+        if [ "$CURRENT_MONTH" = "10" ]; then
+          echo "October detected - adding hacktoberfest-accepted label"
+          gh pr edit ${{ github.event.number }} --add-label "hacktoberfest-accepted"
+        fi
 
         # Auto-merge approved contributions
         echo "Auto-merging approved contribution..."

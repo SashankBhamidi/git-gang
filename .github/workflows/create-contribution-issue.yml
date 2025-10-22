@@ -34,27 +34,27 @@ jobs:
 
         echo "Found closing keywords for issues: $CLOSED_ISSUES"
 
-        # Check if any referenced issue has "good first issue" label
-        FOUND_GOOD_FIRST_ISSUE=false
+        # Check if any referenced issue has "contribution" label
+        FOUND_CONTRIBUTION_ISSUE=false
         for issue_num in $CLOSED_ISSUES; do
           echo "Checking issue #$issue_num"
 
           # Check if issue exists and get its labels
           LABELS=$(gh api "repos/${{ github.repository }}/issues/$issue_num" --jq '.labels[].name' 2>/dev/null || echo "")
 
-          if echo "$LABELS" | grep -q "good first issue"; then
-            echo "✓ Issue #$issue_num has 'good first issue' label"
-            FOUND_GOOD_FIRST_ISSUE=true
+          if echo "$LABELS" | grep -q "contribution"; then
+            echo "✓ Issue #$issue_num has 'contribution' label"
+            FOUND_CONTRIBUTION_ISSUE=true
             break
           fi
         done
 
-        if [ "$FOUND_GOOD_FIRST_ISSUE" = true ]; then
+        if [ "$FOUND_CONTRIBUTION_ISSUE" = true ]; then
           echo "should_create=true" >> $GITHUB_OUTPUT
           echo "Will create new contribution issue"
         else
           echo "should_create=false" >> $GITHUB_OUTPUT
-          echo "No 'good first issue' was closed - skipping"
+          echo "No 'contribution' issue was closed - skipping"
         fi
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
@@ -82,11 +82,20 @@ jobs:
         See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details.
         EOF
 
+        # Determine labels based on current month
+        CURRENT_MONTH=$(date +%m)
+        if [ "$CURRENT_MONTH" = "10" ]; then
+          LABELS="good first issue,help wanted,contribution,hacktoberfest"
+          echo "October detected - adding hacktoberfest label"
+        else
+          LABELS="good first issue,help wanted,contribution"
+        fi
+
         gh issue create \
           --title "Add your name to Git Gang" \
           --body-file /tmp/issue-body.md \
-          --label "good first issue,help wanted"
+          --label "$LABELS"
 
-        echo "✅ Created new contribution issue"
+        echo "✅ Created new contribution issue with labels: $LABELS"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
