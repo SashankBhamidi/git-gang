@@ -50,21 +50,18 @@ jobs:
 
           # Check if issue has "contribution" label
           LABELS=$(echo "$ISSUE_DATA" | jq -r '.labels[].name')
+          STATE=$(echo "$ISSUE_DATA" | jq -r '.state')
 
           if echo "$LABELS" | grep -q "contribution"; then
-            echo "Issue #$issue_num has 'contribution' label"
+            echo "Issue #$issue_num has 'contribution' label, state: $STATE"
 
-            # Check if THIS PR actually closed it by looking at timeline events
-            CLOSED_BY_THIS_PR=$(gh api "repos/${{ github.repository }}/issues/$issue_num/timeline" \
-              --jq ".[] | select(.event == \"closed\" and .commit_id != null) | select(.source.issue.pull_request.number == $PR_NUMBER) | .event" \
-              2>/dev/null || echo "")
-
-            if [ -n "$CLOSED_BY_THIS_PR" ]; then
+            # If the issue is closed, assume this PR closed it (since it's referenced with closing keywords)
+            if [ "$STATE" = "closed" ]; then
               FOUND_CONTRIBUTION_ISSUE=true
-              echo "✓ Issue #$issue_num was closed by THIS PR"
+              echo "✓ Issue #$issue_num is closed - will create replacement"
               break
             else
-              echo "Issue #$issue_num was not closed by this PR (may have been closed by another PR)"
+              echo "Issue #$issue_num is still open - skipping"
             fi
           fi
         done
