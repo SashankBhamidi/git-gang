@@ -88,10 +88,25 @@ jobs:
           LABELS='["good first issue","help wanted","contribution"]'
         fi
 
-        # Create issue using GitHub API
-        BODY='Add your name to the contributors list.\n\n## How to contribute\n\n1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)\n2. Click the edit icon\n3. Fill out:\n   ```\n   - Name: Your Name\n   - Username: your-github-username\n   - Message: Optional message\n   ```\n4. Open a pull request\n5. Automation validates and merges automatically\n\nSee [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details.'
+        # Create issue using jq to properly escape JSON
+        jq -n \
+          --arg title "Add your name to Git Gang" \
+          --arg body "Add your name to the contributors list.
 
-        echo "{\"title\":\"Add your name to Git Gang\",\"body\":\"$BODY\",\"labels\":$LABELS}" | \
+## How to contribute
+
+1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
+2. Click the edit icon
+3. Fill out:
+   - Name: Your Name
+   - Username: your-github-username
+   - Message: Optional message
+4. Open a pull request
+5. Automation validates and merges automatically
+
+See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details." \
+          --argjson labels "$LABELS" \
+          '{title: $title, body: $body, labels: $labels}' | \
           gh api repos/${{ github.repository }}/issues --method POST --input -
 
         echo "✅ Created new contribution issue"
