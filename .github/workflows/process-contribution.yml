@@ -23,7 +23,7 @@ jobs:
   validate-and-process:
     # Only run on pull_request_target or pull_request_review events, skip labeled/unlabeled
     if: |
-      (github.event_name == 'pull_request_target' && github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+      (github.event_name == 'pull_request_target' && !contains(fromJSON('["labeled","unlabeled"]'), github.event.action || '')) ||
       (github.event_name == 'pull_request_review')
     runs-on: ubuntu-latest
     permissions:
