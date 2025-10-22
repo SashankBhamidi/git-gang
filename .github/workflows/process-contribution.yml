@@ -99,10 +99,12 @@ jobs:
 
           # Only add link if no contribution issue is linked
           if [ "$HAS_CONTRIBUTION_LINK" = false ]; then
-            NEW_BODY="${CURRENT_BODY}
+            NEW_BODY=$(cat <<EOF
+${CURRENT_BODY}
 
-Resolves #${ISSUE_NUMBER}"
-
+Resolves #${ISSUE_NUMBER}
+EOF
+)
             gh pr edit $PR_NUMBER --body "$NEW_BODY"
             echo "✓ Linked PR to contribution issue #$ISSUE_NUMBER"
           fi
