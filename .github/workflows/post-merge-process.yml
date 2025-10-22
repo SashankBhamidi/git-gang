@@ -66,12 +66,16 @@ jobs:
         fi
 
         # Check for simple format (Name:/Username:/Message:) or markdown link format
-        if echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "Name:" && \
-           echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "Username:" && \
-           ! echo "$content" | grep -A 10 "Add your entry below this line" | grep -q "^Name:$"; then
+        # Extract the section after "Add your entry below this line"
+        entry_section=$(echo "$content" | sed -n '/Add your entry below this line/,$p')
+
+        # Check if there's actual content (not just empty template)
+        if echo "$entry_section" | grep -qE '- Name:.+' && \
+           echo "$entry_section" | grep -qE '- Username:.+' && \
+           echo "$entry_section" | grep -qE '- Message:'; then
           echo "has_new_entry=true" >> $GITHUB_OUTPUT
           echo "New contribution detected for processing (simple format)"
-        elif echo "$content" | grep -A 10 "Add your entry below this line" | grep -qE '\[.+\]\(https://github.com/[a-zA-Z0-9_-]+\)'; then
+        elif echo "$entry_section" | grep -qE '\[.+\]\(https://github.com/[a-zA-Z0-9_-]+\)'; then
           echo "has_new_entry=true" >> $GITHUB_OUTPUT
           echo "New contribution detected for processing (markdown format)"
         else
