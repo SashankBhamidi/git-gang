@@ -83,7 +83,7 @@ jobs:
           echo "Found open contribution issue: #$ISSUE_NUMBER"
 
           # Get current PR body
-          CURRENT_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body // ""')
+          CURRENT_BODY=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.body // ""')
 
           # Check if PR body already has closing keywords for a contribution issue
           HAS_CONTRIBUTION_LINK=false
