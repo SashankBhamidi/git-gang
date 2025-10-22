@@ -34,18 +34,37 @@ jobs:
 
         echo "Found closing keywords for issues: $CLOSED_ISSUES"
 
-        # Check if any referenced issue has "contribution" label
+        # Check if any referenced issue has "contribution" label and was closed by THIS PR
         FOUND_CONTRIBUTION_ISSUE=false
         for issue_num in $CLOSED_ISSUES; do
           echo "Checking issue #$issue_num"
 
-          # Check if issue exists and get its labels
-          LABELS=$(gh api "repos/${{ github.repository }}/issues/$issue_num" --jq '.labels[].name' 2>/dev/null || echo "")
+          # Get issue details
+          ISSUE_DATA=$(gh api "repos/${{ github.repository }}/issues/$issue_num" 2>/dev/null || echo "")
+
+          if [ -z "$ISSUE_DATA" ]; then
+            echo "Issue #$issue_num not found - skipping"
+            continue
+          fi
+
+          # Check if issue has "contribution" label
+          LABELS=$(echo "$ISSUE_DATA" | jq -r '.labels[].name')
 
           if echo "$LABELS" | grep -q "contribution"; then
-            echo "✓ Issue #$issue_num has 'contribution' label"
-            FOUND_CONTRIBUTION_ISSUE=true
-            break
+            echo "Issue #$issue_num has 'contribution' label"
+
+            # Check if THIS PR actually closed it by looking at timeline events
+            CLOSED_BY_THIS_PR=$(gh api "repos/${{ github.repository }}/issues/$issue_num/timeline" \
+              --jq ".[] | select(.event == \"closed\" and .commit_id != null) | select(.source.issue.pull_request.number == $PR_NUMBER) | .event" \
+              2>/dev/null || echo "")
+
+            if [ -n "$CLOSED_BY_THIS_PR" ]; then
+              FOUND_CONTRIBUTION_ISSUE=true
+              echo "✓ Issue #$issue_num was closed by THIS PR"
+              break
+            else
+              echo "Issue #$issue_num was not closed by this PR (may have been closed by another PR)"
+            fi
           fi
         done
 
