@@ -79,36 +79,20 @@ jobs:
     - name: Create new contribution issue
       if: steps.check-issue.outputs.should_create == 'true'
       run: |
-        # Determine labels based on current month
         CURRENT_MONTH=$(date +%m)
         if [ "$CURRENT_MONTH" = "10" ]; then
-          LABELS='["good first issue","help wanted","contribution","hacktoberfest"]'
+          LABEL1="good first issue"
+          LABEL2="help wanted"
+          LABEL3="contribution"
+          LABEL4="hacktoberfest"
           echo "October detected - adding hacktoberfest label"
+          gh api repos/${{ github.repository }}/issues -X POST -f title="Add your name to Git Gang" -f body="Add your name to the contributors list. See [README](https://github.com/SashankBhamidi/git-gang) for how to contribute." -f "labels[]=$LABEL1" -f "labels[]=$LABEL2" -f "labels[]=$LABEL3" -f "labels[]=$LABEL4"
         else
-          LABELS='["good first issue","help wanted","contribution"]'
+          LABEL1="good first issue"
+          LABEL2="help wanted"
+          LABEL3="contribution"
+          gh api repos/${{ github.repository }}/issues -X POST -f title="Add your name to Git Gang" -f body="Add your name to the contributors list. See [README](https://github.com/SashankBhamidi/git-gang) for how to contribute." -f "labels[]=$LABEL1" -f "labels[]=$LABEL2" -f "labels[]=$LABEL3"
         fi
-
-        # Create issue using jq to properly escape JSON
-        jq -n \
-          --arg title "Add your name to Git Gang" \
-          --arg body "Add your name to the contributors list.
-
-## How to contribute
-
-1. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
-2. Click the edit icon
-3. Fill out:
-   - Name: Your Name
-   - Username: your-github-username
-   - Message: Optional message
-4. Open a pull request
-5. Automation validates and merges automatically
-
-See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details." \
-          --argjson labels "$LABELS" \
-          '{title: $title, body: $body, labels: $labels}' | \
-          gh api repos/${{ github.repository }}/issues --method POST --input -
-
         echo "✅ Created new contribution issue"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
