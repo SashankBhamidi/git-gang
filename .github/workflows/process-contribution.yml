@@ -8,7 +8,7 @@ on:
     types: [submitted]
 
 concurrency:
-  group: contribution-processing-${{ github.event.pull_request.number }}
+  group: contribution-processing-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 permissions:
@@ -21,8 +21,10 @@ permissions:
 
 jobs:
   validate-and-process:
-    # Skip if triggered by labeled/unlabeled events OR push events
-    if: github.event_name != 'push' && (github.event_name != 'pull_request_target' || (github.event.action != 'labeled' && github.event.action != 'unlabeled'))
+    # Only run on pull_request_target or pull_request_review events, skip labeled/unlabeled
+    if: |
+      (github.event_name == 'pull_request_target' && !contains(fromJSON('["labeled","unlabeled"]'), github.event.action || '')) ||
+      (github.event_name == 'pull_request_review')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,13 +32,16 @@ jobs:
       issues: write
       actions: read
       checks: read
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.number || 0 }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login || 'unknown' }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Node.js
@@ -47,7 +52,7 @@ jobs:
     - name: Check only ADD_YOUR_NAME.md is modified
       id: file-check
       run: |
-        files_changed=$(git diff --name-only origin/master...${{ github.event.pull_request.head.sha }})
+        files_changed=$(git diff --name-only origin/master...${{ github.event.pull_request.head.sha || github.sha }})
         file_count=$(echo "$files_changed" | wc -l)
         files_list=$(echo "$files_changed" | tr '\n' ', ' | sed 's/,/, /g' | sed 's/, $//')
 
@@ -78,7 +83,7 @@ jobs:
           echo "Found open contribution issue: #$ISSUE_NUMBER"
 
           # Get current PR body
-          CURRENT_BODY=$(gh pr view ${{ github.event.number }} --json body --jq '.body // ""')
+          CURRENT_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body // ""')
 
           # Check if PR body already has closing keywords for a contribution issue
           HAS_CONTRIBUTION_LINK=false
@@ -96,11 +101,10 @@ jobs:
 
           # Only add link if no contribution issue is linked
           if [ "$HAS_CONTRIBUTION_LINK" = false ]; then
-            NEW_BODY="${CURRENT_BODY}
-
-Resolves #${ISSUE_NUMBER}"
-
-            gh pr edit ${{ github.event.number }} --body "$NEW_BODY"
+            echo "$CURRENT_BODY" > /tmp/pr-body.txt
+            echo "" >> /tmp/pr-body.txt
+            echo "Resolves #${ISSUE_NUMBER}" >> /tmp/pr-body.txt
+            gh pr edit $PR_NUMBER --body-file /tmp/pr-body.txt
             echo "✓ Linked PR to contribution issue #$ISSUE_NUMBER"
           fi
         else
@@ -119,7 +123,6 @@ Resolves #${ISSUE_NUMBER}"
       if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true'
       id: username-check
       run: |
-        PR_AUTHOR="${{ github.event.pull_request.user.login }}"
         ENTRY_USERNAME="${{ steps.validate.outputs.username }}"
 
         if [ "$PR_AUTHOR" != "$ENTRY_USERNAME" ]; then
@@ -151,24 +154,24 @@ Resolves #${ISSUE_NUMBER}"
         sed -i "s|ENTRY_PLACEHOLDER|${{ steps.validate.outputs.entry }}|g" /tmp/approval-comment.md
         sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/approval-comment.md
 
-        gh pr comment ${{ github.event.number }} --body-file /tmp/approval-comment.md
+        gh pr comment $PR_NUMBER --body-file /tmp/approval-comment.md
 
         # Remove invalid label if it exists (user fixed their entry)
-        gh pr edit ${{ github.event.number }} --remove-label "invalid" 2>/dev/null || true
+        gh pr edit $PR_NUMBER --remove-label "invalid" 2>/dev/null || true
 
         # Add approved label
-        gh pr edit ${{ github.event.number }} --add-label "approved"
+        gh pr edit $PR_NUMBER --add-label "approved"
 
         # Add Hacktoberfest label if it's October
         CURRENT_MONTH=$(date +%m)
         if [ "$CURRENT_MONTH" = "10" ]; then
           echo "October detected - adding hacktoberfest-accepted label"
-          gh pr edit ${{ github.event.number }} --add-label "hacktoberfest-accepted"
+          gh pr edit $PR_NUMBER --add-label "hacktoberfest-accepted"
         fi
 
         # Auto-merge approved contributions
         echo "Auto-merging approved contribution..."
-        gh pr merge ${{ github.event.number }} --squash --auto
+        gh pr merge $PR_NUMBER --squash --auto
         echo "Auto-merge enabled - PR will merge when all checks pass"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
@@ -198,7 +201,7 @@ Resolves #${ISSUE_NUMBER}"
         # Replace placeholders
         sed -i "s|ENTRY_PLACEHOLDER|${{ steps.validate.outputs.entry }}|g" /tmp/moderation-issue.md
         sed -i "s|USERNAME_PLACEHOLDER|${{ steps.validate.outputs.username }}|g" /tmp/moderation-issue.md
-        sed -i "s|PR_NUMBER_PLACEHOLDER|${{ github.event.number }}|g" /tmp/moderation-issue.md
+        sed -i "s|PR_NUMBER_PLACEHOLDER|$PR_NUMBER|g" /tmp/moderation-issue.md
         sed -i "s|NAME_PLACEHOLDER|${{ steps.validate.outputs.name }}|g" /tmp/moderation-issue.md
         sed -i "s|MESSAGE_PLACEHOLDER|${{ steps.validate.outputs.message }}|g" /tmp/moderation-issue.md
         sed -i "s|NAME_FLAG_PLACEHOLDER|${{ steps.validate.outputs.profanity_in_name }}|g" /tmp/moderation-issue.md
@@ -214,15 +217,15 @@ Resolves #${ISSUE_NUMBER}"
     - name: Request review for unauthorized file changes
       if: steps.file-check.outputs.valid == 'false' && steps.file-check.outputs.is_contribution == 'true'
       run: |
-        gh pr edit ${{ github.event.number }} --add-reviewer SashankBhamidi
+        gh pr edit $PR_NUMBER --add-reviewer SashankBhamidi
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Handle non-contribution PRs
       if: steps.file-check.outputs.is_contribution == 'false'
       run: |
-        gh pr comment ${{ github.event.number }} --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
-        gh pr edit ${{ github.event.number }} --add-label "not-a-contribution"
+        gh pr comment $PR_NUMBER --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
+        gh pr edit $PR_NUMBER --add-label "not-a-contribution"
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
@@ -235,24 +238,24 @@ Resolves #${ISSUE_NUMBER}"
         steps.file-check.outputs.is_contribution == 'true'
       run: |
         if [ "${{ steps.file-check.outputs.valid }}" == "false" ]; then
-          gh pr comment ${{ github.event.number }} --body $'## Unauthorized file changes detected\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nContributions should only modify ADD_YOUR_NAME.md. This PR has been flagged for manual review.'
-          gh pr edit ${{ github.event.number }} --add-label "unauthorized"
+          gh pr comment $PR_NUMBER --body $'## Unauthorized file changes detected\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nContributions should only modify ADD_YOUR_NAME.md. This PR has been flagged for manual review.'
+          gh pr edit $PR_NUMBER --add-label "unauthorized"
         elif [ "${{ steps.validate.outputs.valid }}" == "false" ]; then
           # Check if it's a duplicate entry
           if echo "${{ steps.validate.outputs.error_message }}" | grep -q "already been added"; then
-            gh pr comment ${{ github.event.number }} --body $'## Already a contributor!\n\nLooks like you\'ve already joined the Git Gang - your name is already in the contributors list.\n\nThanks for your enthusiasm, but we can only add each person once. Closing this PR.'
-            gh pr edit ${{ github.event.number }} --add-label "duplicate"
-            gh pr close ${{ github.event.number }}
+            gh pr comment $PR_NUMBER --body $'## Already a contributor!\n\nLooks like you\'ve already joined the Git Gang - your name is already in the contributors list.\n\nThanks for your enthusiasm, but we can only add each person once. Closing this PR.'
+            gh pr edit $PR_NUMBER --add-label "duplicate"
+            gh pr close $PR_NUMBER
           else
-            gh pr comment ${{ github.event.number }} --body $'## Needs a small fix\n\nThere\'s an issue with your entry:\n\n**Issue:** ${{ steps.validate.outputs.error_message }}\n\nUpdate it and the validation will run again automatically.'
-            gh pr edit ${{ github.event.number }} --add-label "invalid"
+            gh pr comment $PR_NUMBER --body $'## Needs a small fix\n\nThere\'s an issue with your entry:\n\n**Issue:** ${{ steps.validate.outputs.error_message }}\n\nUpdate it and the validation will run again automatically.'
+            gh pr edit $PR_NUMBER --add-label "invalid"
           fi
         elif [ "${{ steps.username-check.outputs.valid }}" == "false" ]; then
-          gh pr comment ${{ github.event.number }} --body $'## Username mismatch\n\nYour GitHub username is **@${{ github.event.pull_request.user.login }}** but you entered **`@${{ steps.validate.outputs.username }}`**.\n\nPlease update your entry to use your own GitHub username.'
-          gh pr edit ${{ github.event.number }} --add-label "invalid"
+          gh pr comment $PR_NUMBER --body $'## Username mismatch\n\nYour GitHub username is **@$PR_AUTHOR** but you entered **`@${{ steps.validate.outputs.username }}`**.\n\nPlease update your entry to use your own GitHub username.'
+          gh pr edit $PR_NUMBER --add-label "invalid"
         elif [ "${{ steps.validate.outputs.profanity_detected }}" == "true" ]; then
-          gh pr comment ${{ github.event.number }} --body $'## Flagged for review\n\nYour entry was flagged by our content filter and needs manual review. We\'ll take a look shortly!'
-          gh pr edit ${{ github.event.number }} --add-label "moderation"
+          gh pr comment $PR_NUMBER --body $'## Flagged for review\n\nYour entry was flagged by our content filter and needs manual review. We\'ll take a look shortly!'
+          gh pr edit $PR_NUMBER --add-label "moderation"
         fi
       env:
         GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
@@ -260,4 +263,4 @@ Resolves #${ISSUE_NUMBER}"
     - name: Report workflow completion
       if: always()
       run: |
-        echo "Workflow completed for PR #${{ github.event.number }}"
+        echo "Workflow completed for PR #$PR_NUMBER"
