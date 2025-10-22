@@ -7,6 +7,7 @@ on:
 
 permissions:
   issues: write
+  pull-requests: read
 
 jobs:
   create-issue:
@@ -21,7 +22,7 @@ jobs:
         PR_NUMBER="${{ github.event.number }}"
 
         # Get PR body and extract issue numbers from closing keywords
-        PR_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body // ""')
+        PR_BODY=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.body // ""')
 
         # Extract issue numbers from "Closes #X", "Fixes #X", "Resolves #X" etc.
         CLOSED_ISSUES=$(echo "$PR_BODY" | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' | grep -oE '#[0-9]+' | tr -d '#' | sort -u)
