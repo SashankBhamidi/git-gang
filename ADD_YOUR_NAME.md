@@ -1,4 +1,4 @@
-# Ashvin Tiwari
+# Add Your Name
 
 Want to join the Git Gang? Just fill out the form below.
 
