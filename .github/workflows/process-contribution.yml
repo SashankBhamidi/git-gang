@@ -133,8 +133,7 @@ jobs:
       - name: Comprehensive validation and profanity check
         id: validate
         if: steps.file-check.outputs.valid == 'true'
-        continue-on-error: true
-        run: node scripts/comprehensive-validation.js
+        run: node scripts/comprehensive-validation.js || true
 
       - name: Verify GitHub username matches PR author
         if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true'
