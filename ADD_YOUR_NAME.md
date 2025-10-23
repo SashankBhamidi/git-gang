@@ -10,4 +10,4 @@ Want to join the Git Gang? Just fill out the form below.
 
 - Name: Asha Saini
 - Username: AshaSaini-033
-- Message: "Good first issue contribution" 
+- Message: Good first issue contribution
