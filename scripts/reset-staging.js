@@ -12,8 +12,8 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name:
-Username:
+- Name:
+- Username:
 Message:`;
 
     fs.writeFileSync('ADD_YOUR_NAME.md', template);
