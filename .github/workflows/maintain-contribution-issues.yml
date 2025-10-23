@@ -102,12 +102,16 @@ jobs:
           EOFBODY
 
           # Create the needed number of issues
+          CREATED_COUNT=0
+          FAILED_COUNT=0
+
           for i in $(seq 1 $NEEDED); do
             echo "Creating contribution issue $i of $NEEDED..."
 
             # Create issue with retry logic
             MAX_RETRIES=3
             RETRY_COUNT=0
+            ISSUE_CREATED=false
 
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
               if gh api repos/${{ github.repository }}/issues -X POST \
@@ -118,6 +122,8 @@ jobs:
                 -f "labels[]=${LABEL_ARRAY[2]}" \
                 $([ "${LABEL_ARRAY[3]}" ] && echo "-f labels[]=${LABEL_ARRAY[3]}" || echo "") 2>/dev/null; then
                 echo "✓ Created issue $i"
+                ISSUE_CREATED=true
+                CREATED_COUNT=$((CREATED_COUNT + 1))
                 break
               fi
 
@@ -127,13 +133,19 @@ jobs:
                 sleep 2
               else
                 echo "⚠ Failed to create issue $i after $MAX_RETRIES attempts"
+                FAILED_COUNT=$((FAILED_COUNT + 1))
               fi
             done
 
-            # Small delay to avoid rate limiting
-            sleep 1
+            # Add 1-second delay between creations to prevent hitting GitHub API rate limits
+            if [ $i -lt $NEEDED ]; then
+              sleep 1
+            fi
           done
 
-          echo "✅ Finished creating contribution issues"
+          echo "✅ Created $CREATED_COUNT/$NEEDED issues"
+          if [ $FAILED_COUNT -gt 0 ]; then
+            echo "⚠ Warning: $FAILED_COUNT issue(s) failed to create"
+          fi
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
