@@ -21,8 +21,30 @@ jobs:
       - name: Check contribution issue count
         id: check
         run: |
-          # Count open issues with "contribution" label
-          OPEN_COUNT=$(gh issue list --repo ${{ github.repository }} --label contribution --state open --json number --jq 'length')
+          set -euo pipefail
+
+          # Count open issues with "contribution" label (with retry)
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          OPEN_COUNT=""
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if OPEN_COUNT=$(gh issue list --repo ${{ github.repository }} --label contribution --state open --json number --jq 'length' 2>/dev/null); then
+              break
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Retry $RETRY_COUNT/$MAX_RETRIES: Waiting 2s..."
+              sleep 2
+            fi
+          done
+
+          if [ -z "$OPEN_COUNT" ]; then
+            echo "Error: Could not fetch issue count after $MAX_RETRIES attempts"
+            echo "need_to_create=0" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
           echo "Found $OPEN_COUNT open contribution issues"
 
           # Calculate how many we need to create
@@ -42,6 +64,8 @@ jobs:
       - name: Create contribution issues
         if: steps.check.outputs.need_to_create > 0
         run: |
+          set -euo pipefail
+
           NEEDED=${{ steps.check.outputs.need_to_create }}
           CURRENT_MONTH=$(date +%m)
 
@@ -81,16 +105,35 @@ jobs:
           for i in $(seq 1 $NEEDED); do
             echo "Creating contribution issue $i of $NEEDED..."
 
-            # Create issue using gh api with detailed instructions
-            gh api repos/${{ github.repository }}/issues -X POST \
-              -f title="Add your name to Git Gang" \
-              -F body=@/tmp/issue-body.txt \
-              -f "labels[]=${LABEL_ARRAY[0]}" \
-              -f "labels[]=${LABEL_ARRAY[1]}" \
-              -f "labels[]=${LABEL_ARRAY[2]}" \
-              $([ "${LABEL_ARRAY[3]}" ] && echo "-f labels[]=${LABEL_ARRAY[3]}" || echo "")
+            # Create issue with retry logic
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if gh api repos/${{ github.repository }}/issues -X POST \
+                -f title="Add your name to Git Gang" \
+                -F body=@/tmp/issue-body.txt \
+                -f "labels[]=${LABEL_ARRAY[0]}" \
+                -f "labels[]=${LABEL_ARRAY[1]}" \
+                -f "labels[]=${LABEL_ARRAY[2]}" \
+                $([ "${LABEL_ARRAY[3]}" ] && echo "-f labels[]=${LABEL_ARRAY[3]}" || echo "") 2>/dev/null; then
+                echo "✓ Created issue $i"
+                break
+              fi
+
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Retry $RETRY_COUNT/$MAX_RETRIES: Waiting 2s..."
+                sleep 2
+              else
+                echo "⚠ Failed to create issue $i after $MAX_RETRIES attempts"
+              fi
+            done
+
+            # Small delay to avoid rate limiting
+            sleep 1
           done
 
-          echo "✅ Created $NEEDED contribution issue(s)"
+          echo "✅ Finished creating contribution issues"
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}

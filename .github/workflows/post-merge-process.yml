@@ -42,6 +42,14 @@ jobs:
       - name: Check if ADD_YOUR_NAME.md has new content
         id: check-content
         run: |
+          set -euo pipefail
+
+          if [ ! -f "ADD_YOUR_NAME.md" ]; then
+            echo "Error: ADD_YOUR_NAME.md not found"
+            echo "has_new_entry=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           content=$(cat ADD_YOUR_NAME.md)
           commit_message="${{ github.event.head_commit.message }}"
 
