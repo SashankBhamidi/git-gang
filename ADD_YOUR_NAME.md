@@ -11,6 +11,3 @@ Want to join the Git Gang? Just fill out the form below.
 - Name: Yashpss01
 - Username: yashpss01
 - Message:  Hello Contributers !!
-- Name: Ashvin Tiwari
-- Username: ashvin2005
-- Message: love you all !!
