@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Luuk
-- Username: Devluuk123
-- Message: Git-ging is a awesome idea of Sashank where I want to be part of by contributing in a simple way.
+- Name: Hans
+- Username: hans-r7
+- Message: hacktoberfest is an awesome way of contributing to open source PRs!
