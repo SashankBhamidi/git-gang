@@ -1,40 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-
-async function checkProfanityAPI(text, retryCount = 0) {
-  const MAX_RETRIES = 3;
-  const TIMEOUT_MS = 5000;
-  const RETRY_DELAYS = [1000, 2000, 3000]; // Exponential backoff
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-    const response = await fetch(
-      `https://www.purgomalum.com/service/containsprofanity?text=${encodeURIComponent(text)}`,
-      { signal: controller.signal }
-    );
-
-    clearTimeout(timeoutId);
-    const result = await response.text();
-    return result.toLowerCase() === 'true';
-  } catch (error) {
-    console.log(`API check failed for "${text}" (attempt ${retryCount + 1}/${MAX_RETRIES}): ${error.message}`);
-
-    // Retry logic with exponential backoff
-    if (retryCount < MAX_RETRIES - 1) {
-      const delay = RETRY_DELAYS[retryCount];
-      console.log(`Retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return checkProfanityAPI(text, retryCount + 1);
-    }
-
-    // Fail closed - flag for manual review if API is unavailable
-    console.warn(`Profanity API unavailable after ${MAX_RETRIES} attempts. Flagging for manual review.`);
-    return true; // Return true to trigger manual review
-  }
-}
+const { checkEntryProfanity } = require('./validation-utils');
 
 async function checkEntry(entry) {
   const nameMatch = entry.match(/^\[([^\]]+)\]/);
@@ -43,15 +10,12 @@ async function checkEntry(entry) {
   const name = nameMatch ? nameMatch[1] : '';
   const message = messageMatch ? messageMatch[1] : '';
 
-  const profanityInName = name ? await checkProfanityAPI(name) : false;
-  const profanityInMessage = message ? await checkProfanityAPI(message) : false;
+  const profanityCheck = await checkEntryProfanity(name, message);
 
   return {
-    hasProfanity: profanityInName || profanityInMessage,
+    ...profanityCheck,
     name,
-    message,
-    profanityInName,
-    profanityInMessage
+    message
   };
 }
 
