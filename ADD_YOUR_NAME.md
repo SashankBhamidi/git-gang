@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-Name:Luuk
-Username:Devluuk123
-Message: Git-ging is a awesome idea of sashan where i want to be part of by contributing in a simple way.
+- Name: Luuk
+- Username: Devluuk123
+- Message: Git-ging is a awesome idea of Sashank where I want to be part of by contributing in a simple way.
