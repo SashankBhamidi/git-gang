@@ -115,7 +115,27 @@ function validateFormat(line) {
 
 function checkExistingContributor(username) {
   try {
-    const contributors = fs.readFileSync('CONTRIBUTORS.md', 'utf8');
+    let contributors;
+
+    // In GitHub Actions, check against the latest master branch to avoid race conditions
+    // where multiple PRs are opened/merged in quick succession
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      const { execSync } = require('child_process');
+      try {
+        // Read CONTRIBUTORS.md from origin/master (latest merged state)
+        contributors = execSync('git show origin/master:CONTRIBUTORS.md', {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+      } catch (gitError) {
+        console.warn('Warning: Could not read CONTRIBUTORS.md from origin/master, falling back to local copy');
+        contributors = fs.readFileSync('CONTRIBUTORS.md', 'utf8');
+      }
+    } else {
+      // Local development: read from filesystem
+      contributors = fs.readFileSync('CONTRIBUTORS.md', 'utf8');
+    }
+
     const regex = new RegExp(`https://github\\.com/${username}\\)`, 'i');
     return regex.test(contributors);
   } catch (error) {
