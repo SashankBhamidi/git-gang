@@ -20,7 +20,7 @@ function setOutput(name, value) {
 function setError(message) {
   setOutput('valid', 'false');
   setOutput('error_message', message);
-  console.error(`Validation Error: ${message}`);
+  console.error(`ERROR: ${message}`);
 }
 
 function capitalizeWords(str) {

@@ -164,15 +164,15 @@ async function validateContribution() {
     setOutput('profanity_in_message', profanityCheck.profanityInMessage ? 'true' : 'false');
 
     if (profanityCheck.hasProfanity) {
-      console.log('⚠️  Potential profanity detected in contribution');
+      console.log('WARNING: Potential profanity detected in contribution');
       if (profanityCheck.profanityInName) {
-        console.log('   - Detected in name');
+        console.log('  - Detected in name field');
       }
       if (profanityCheck.profanityInMessage) {
-        console.log('   - Detected in message');
+        console.log('  - Detected in message field');
       }
     } else {
-      console.log('✅ Contribution validated successfully!');
+      console.log('SUCCESS: Contribution validated successfully');
     }
 
     return true;

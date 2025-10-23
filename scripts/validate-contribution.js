@@ -99,7 +99,7 @@ function main() {
     setOutput('valid', 'true');
     setOutput('entry', newEntry);
     setOutput('username', username);
-    console.log('Contribution validated successfully!');
+    console.log('SUCCESS: Contribution validated successfully');
 
   } catch (error) {
     setError(`Validation failed: ${error.message}`);
