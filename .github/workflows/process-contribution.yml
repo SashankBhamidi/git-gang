@@ -91,8 +91,8 @@ jobs:
 
           # Only find and link an issue if no contribution issue is already linked
           if [ "$HAS_CONTRIBUTION_LINK" = false ]; then
-            # Get all open contribution issues
-            OPEN_ISSUES=$(gh issue list --label "contribution" --state open --json number --jq '.[].number')
+            # Get all open contribution issues (sorted oldest first)
+            OPEN_ISSUES=$(gh issue list --label "contribution" --state open --json number,createdAt --jq 'sort_by(.createdAt) | .[].number')
 
             # Get all open PRs and their linked issues
             LINKED_ISSUES=$(gh pr list --state open --json body --jq '.[].body' | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' | grep -oE '#[0-9]+' | tr -d '#' | sort -u)
