@@ -10,4 +10,4 @@ Want to join the Git Gang? Just fill out the form below.
 
 - Name: Mayur
 - Username: MayurK-cmd
-- Message : Blah blah
+- Message: Blah blah
