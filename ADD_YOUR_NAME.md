@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Divyansh Mishra
+- Username: mishraa-G
+- Message: Excited to tackle some good issues
