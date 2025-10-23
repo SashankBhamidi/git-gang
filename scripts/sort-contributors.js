@@ -39,34 +39,36 @@ function sortContributors() {
     // Calculate total count
     const totalCount = maintainerEntries.length + regularEntries.length;
 
-    // Rebuild the file
-    let output = '';
+    // Rebuild the file using array for better performance
+    const outputParts = [];
     let addedContent = false;
 
     for (const line of otherLines) {
       if (line.includes('## Our Contributors') && !addedContent) {
-        output += line + '\n\n';
-        output += `Total contributors: ${totalCount}\n\n`;
+        outputParts.push(line);
+        outputParts.push('');
+        outputParts.push(`Total contributors: ${totalCount}`);
+        outputParts.push('');
 
         // Add maintainer entries first with consistent list format
         for (const entry of maintainerEntries) {
           const normalizedEntry = entry.trim().startsWith('-') ? entry : '- ' + entry.trim();
-          output += normalizedEntry + '\n';
+          outputParts.push(normalizedEntry);
         }
 
         // Add sorted regular entries with consistent list format
         for (const entry of regularEntries) {
           const normalizedEntry = entry.line.trim().startsWith('-') ? entry.line : '- ' + entry.line.trim();
-          output += normalizedEntry + '\n';
+          outputParts.push(normalizedEntry);
         }
 
         addedContent = true;
       } else if (!line.startsWith('Total contributors:')) {
-        output += line + '\n';
+        outputParts.push(line);
       }
     }
 
-    fs.writeFileSync('CONTRIBUTORS.md', output.trim() + '\n');
+    fs.writeFileSync('CONTRIBUTORS.md', outputParts.join('\n') + '\n');
     console.log(`Contributors sorted (${totalCount} total: ${maintainerEntries.length} maintainers, ${regularEntries.length} regular)`);
 
   } catch (error) {

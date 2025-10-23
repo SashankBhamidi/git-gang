@@ -10,17 +10,21 @@ function updateBadge() {
     const count = countMatch ? countMatch[1] : '0';
 
     // Read README.md
-    let readme = fs.readFileSync('README.md', 'utf8');
+    const readme = fs.readFileSync('README.md', 'utf8');
 
     // Update the contributors badge
-    readme = readme.replace(
+    const updatedReadme = readme.replace(
       /!\[Contributors\]\(https:\/\/img\.shields\.io\/badge\/contributors-\d+-brightgreen\.svg\?style=flat-square\)/,
       `![Contributors](https://img.shields.io/badge/contributors-${count}-brightgreen.svg?style=flat-square)`
     );
 
-    // Write back to README.md
-    fs.writeFileSync('README.md', readme);
-    console.log(`Badge updated to show ${count} contributors`);
+    // Only write if content changed
+    if (updatedReadme !== readme) {
+      fs.writeFileSync('README.md', updatedReadme);
+      console.log(`Badge updated to show ${count} contributors`);
+    } else {
+      console.log(`Badge already shows ${count} contributors (no update needed)`);
+    }
 
   } catch (error) {
     console.error('Failed to update badge:', error.message);

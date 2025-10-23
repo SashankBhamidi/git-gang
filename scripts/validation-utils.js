@@ -162,8 +162,27 @@ async function checkProfanityAPI(text, retryCount = 0) {
 }
 
 async function checkEntryProfanity(name, message) {
-  const profanityInName = name ? await checkProfanityAPI(name) : false;
-  const profanityInMessage = message ? await checkProfanityAPI(message) : false;
+  // Run both checks in parallel for better performance
+  const checks = [];
+  let nameIndex = null;
+  let messageIndex = null;
+
+  if (name) {
+    nameIndex = checks.length;
+    checks.push(checkProfanityAPI(name));
+  }
+  if (message) {
+    messageIndex = checks.length;
+    checks.push(checkProfanityAPI(message));
+  }
+
+  if (checks.length === 0) {
+    return { hasProfanity: false, profanityInName: false, profanityInMessage: false };
+  }
+
+  const results = await Promise.all(checks);
+  const profanityInName = nameIndex !== null ? results[nameIndex] : false;
+  const profanityInMessage = messageIndex !== null ? results[messageIndex] : false;
 
   return {
     hasProfanity: profanityInName || profanityInMessage,
