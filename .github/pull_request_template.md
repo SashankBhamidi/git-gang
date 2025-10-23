@@ -11,6 +11,7 @@ I filled out the simple form in ADD_YOUR_NAME.md with my details.
 - [ ] I filled out Name, Username, and Message
 - [ ] This is my first contribution
 - [ ] I only modified ADD_YOUR_NAME.md
+- [ ] I starred this repository ⭐ (helps us reach more contributors!)
 
 ---
 

@@ -70,10 +70,24 @@ jobs:
               fi
             done
 
-            # Create issue using gh api
+            # Create issue using gh api with detailed instructions
             gh api repos/${{ github.repository }}/issues -X POST \
               -f title="Add your name to Git Gang" \
-              -f body="Add your name to the contributors list. See [README](https://github.com/SashankBhamidi/git-gang) for how to contribute." \
+              -f body="Add your name to the contributors list.
+
+## How to contribute
+
+1. **Star this repository** ⭐ (helps us reach more contributors!)
+2. Open [ADD_YOUR_NAME.md](https://github.com/SashankBhamidi/git-gang/blob/master/ADD_YOUR_NAME.md)
+3. Click the edit icon ✏️
+4. Fill out:
+   - Name: Your Name
+   - Username: your-github-username
+   - Message: Optional message
+5. Open a pull request
+6. Automation validates and merges automatically
+
+See [README](https://github.com/SashankBhamidi/git-gang/blob/master/README.md) for details." \
               -f "labels[]=${LABEL_ARRAY[0]}" \
               -f "labels[]=${LABEL_ARRAY[1]}" \
               -f "labels[]=${LABEL_ARRAY[2]}" \

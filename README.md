@@ -9,10 +9,11 @@ We're building the biggest contributors list on GitHub. Join developers who've a
 
 It takes 15 seconds.
 
-1. **Open this file:** [ADD_YOUR_NAME.md](ADD_YOUR_NAME.md)
-2. **Fill out the form:** Name, Username, Message
-3. **Submit a pull request**
-4. **Done.** Our automation handles the rest.
+1. **Star this repository** ⭐ (helps us reach more contributors!)
+2. **Open this file:** [ADD_YOUR_NAME.md](ADD_YOUR_NAME.md)
+3. **Fill out the form:** Name, Username, Message
+4. **Submit a pull request**
+5. **Done.** Our automation handles the rest.
 
 ## The rules
 
