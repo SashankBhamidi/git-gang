@@ -27,16 +27,19 @@ function capitalizeWords(str) {
   // Preserve special cases like O'Brien, McDonald, Mary-Jane
   return str.split(' ')
     .map(word => {
+      // Skip empty words
+      if (!word) return word;
+
       // Handle hyphenated names (Mary-Jane)
       if (word.includes('-')) {
         return word.split('-')
-          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .map(part => part && part.length > 0 ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part)
           .join('-');
       }
       // Handle names with apostrophes (O'Brien, D'Angelo)
       if (word.includes("'")) {
         return word.split("'")
-          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .map(part => part && part.length > 0 ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part)
           .join("'");
       }
       // Handle names starting with Mc/Mac (McDonald, MacLeod)

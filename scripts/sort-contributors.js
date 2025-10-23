@@ -48,14 +48,16 @@ function sortContributors() {
         output += line + '\n\n';
         output += `Total contributors: ${totalCount}\n\n`;
 
-        // Add maintainer entries first
+        // Add maintainer entries first with consistent list format
         for (const entry of maintainerEntries) {
-          output += entry + '\n';
+          const normalizedEntry = entry.trim().startsWith('-') ? entry : '- ' + entry.trim();
+          output += normalizedEntry + '\n';
         }
 
-        // Add sorted regular entries
+        // Add sorted regular entries with consistent list format
         for (const entry of regularEntries) {
-          output += entry.line + '\n';
+          const normalizedEntry = entry.line.trim().startsWith('-') ? entry.line : '- ' + entry.line.trim();
+          output += normalizedEntry + '\n';
         }
 
         addedContent = true;

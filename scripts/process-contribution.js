@@ -10,7 +10,6 @@ function addToContributors(entry) {
     contributors = contributors.trim() + '\n- ' + entry + '\n';
 
     fs.writeFileSync('CONTRIBUTORS.md', contributors);
-    console.log('Entry added to CONTRIBUTORS.md');
 
   } catch (error) {
     console.error('Failed to add entry to contributors:', error.message);
