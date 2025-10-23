@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Samarth Shendre
-- Username: i-m-samarth-cs
-- Message: Excited to join and collaborate with the Gang!
+- Name: Luuk
+- Username: Devluuk123
+- Message: Git-ging is a awesome idea of Sashank where I want to be part of by contributing in a simple way.
