@@ -141,7 +141,11 @@ jobs:
         run: |
           ENTRY_USERNAME="${{ steps.validate.outputs.username }}"
 
-          if [ "$PR_AUTHOR" != "$ENTRY_USERNAME" ]; then
+          # Case-insensitive comparison (GitHub usernames are case-insensitive)
+          PR_AUTHOR_LOWER=$(echo "$PR_AUTHOR" | tr '[:upper:]' '[:lower:]')
+          ENTRY_USERNAME_LOWER=$(echo "$ENTRY_USERNAME" | tr '[:upper:]' '[:lower:]')
+
+          if [ "$PR_AUTHOR_LOWER" != "$ENTRY_USERNAME_LOWER" ]; then
             echo "valid=false" >> $GITHUB_OUTPUT
             echo "error=Username mismatch: Your GitHub username is @$PR_AUTHOR but you entered @$ENTRY_USERNAME. Please use your own GitHub username." >> $GITHUB_OUTPUT
             echo "Username validation failed"
