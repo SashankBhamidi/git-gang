@@ -272,79 +272,80 @@ jobs:
           steps.file-check.outputs.is_contribution == 'true'
         run: |
           if [ "${{ steps.file-check.outputs.valid }}" == "false" ]; then
-            cat > /tmp/error-comment.md << 'ERROR_EOF'
-            ## Unauthorized File Changes Detected
-
-            **Issue:** ${{ steps.file-check.outputs.error_message }}
-
-            ### What you need to do
-            Contributions should **only** modify `ADD_YOUR_NAME.md`. Please:
-            1. Remove changes to other files
-            2. Keep only your entry in `ADD_YOUR_NAME.md`
-            3. Push the update
-
-            This PR has been flagged for manual review.
-            ERROR_EOF
+            # Use printf to avoid heredoc issues with variable substitution
+            printf '%s\n' \
+              '## Unauthorized File Changes Detected' \
+              '' \
+              '**Issue:** ${{ steps.file-check.outputs.error_message }}' \
+              '' \
+              '### What you need to do' \
+              'Contributions should **only** modify `ADD_YOUR_NAME.md`. Please:' \
+              '1. Remove changes to other files' \
+              '2. Keep only your entry in `ADD_YOUR_NAME.md`' \
+              '3. Push the update' \
+              '' \
+              'This PR has been flagged for manual review.' \
+              > /tmp/error-comment.md
             gh pr comment $PR_NUMBER --body-file /tmp/error-comment.md
             gh pr edit $PR_NUMBER --add-label "unauthorized"
           elif [ "${{ steps.validate.outputs.valid }}" == "false" ]; then
             # Check if it's a duplicate entry
             if echo "${{ steps.validate.outputs.error_message }}" | grep -q "already been added"; then
-              cat > /tmp/duplicate-comment.md << 'DUP_EOF'
-              ## Already a Contributor
-
-              Looks like you've already joined the Git Gang - your name is already in the [contributors list](https://github.com/SashankBhamidi/git-gang/blob/master/CONTRIBUTORS.md).
-
-              Thanks for your enthusiasm, but we can only add each person once. Closing this PR.
-              DUP_EOF
+              printf '%s\n' \
+                '## Already a Contributor' \
+                '' \
+                "Looks like you've already joined the Git Gang - your name is already in the [contributors list](https://github.com/SashankBhamidi/git-gang/blob/master/CONTRIBUTORS.md)." \
+                '' \
+                'Thanks for your enthusiasm, but we can only add each person once. Closing this PR.' \
+                > /tmp/duplicate-comment.md
               gh pr comment $PR_NUMBER --body-file /tmp/duplicate-comment.md
               gh pr edit $PR_NUMBER --add-label "duplicate"
               gh pr close $PR_NUMBER
             else
-              cat > /tmp/fix-comment.md << 'FIX_EOF'
-              ## Validation Failed - Fix Required
-
-              There's an issue with your entry:
-
-              **Issue:** ${{ steps.validate.outputs.error_message }}
-
-              ### How to fix
-              1. Click on the **Files changed** tab
-              2. Click the pencil icon to edit `ADD_YOUR_NAME.md`
-              3. Fix the issue mentioned above
-              4. Commit the changes
-
-              The validation will run again automatically when you push the update.
-              FIX_EOF
+              printf '%s\n' \
+                '## Validation Failed - Fix Required' \
+                '' \
+                "There's an issue with your entry:" \
+                '' \
+                '**Issue:** ${{ steps.validate.outputs.error_message }}' \
+                '' \
+                '### How to fix' \
+                '1. Click on the **Files changed** tab' \
+                '2. Click the pencil icon to edit `ADD_YOUR_NAME.md`' \
+                '3. Fix the issue mentioned above' \
+                '4. Commit the changes' \
+                '' \
+                'The validation will run again automatically when you push the update.' \
+                > /tmp/fix-comment.md
               gh pr comment $PR_NUMBER --body-file /tmp/fix-comment.md
               gh pr edit $PR_NUMBER --add-label "invalid"
             fi
           elif [ "${{ steps.username-check.outputs.valid }}" == "false" ]; then
-            cat > /tmp/username-comment.md << 'USER_EOF'
-            ## Username Mismatch
-
-            Your GitHub username is **@$PR_AUTHOR** but you entered **@${{ steps.validate.outputs.username }}**.
-
-            ### How to fix
-            Please update your entry in `ADD_YOUR_NAME.md` to use your own GitHub username: **@$PR_AUTHOR**
-
-            You cannot submit entries on behalf of others.
-            USER_EOF
+            printf '%s\n' \
+              '## Username Mismatch' \
+              '' \
+              'Your GitHub username is **@'"$PR_AUTHOR"'** but you entered **@${{ steps.validate.outputs.username }}**.' \
+              '' \
+              '### How to fix' \
+              'Please update your entry in `ADD_YOUR_NAME.md` to use your own GitHub username: **@'"$PR_AUTHOR"'**' \
+              '' \
+              'You cannot submit entries on behalf of others.' \
+              > /tmp/username-comment.md
             gh pr comment $PR_NUMBER --body-file /tmp/username-comment.md
             gh pr edit $PR_NUMBER --add-label "invalid"
           elif [ "${{ steps.validate.outputs.profanity_detected }}" == "true" ]; then
-            cat > /tmp/moderation-comment.md << 'MOD_EOF'
-            ## Flagged for Manual Review
-
-            Your entry was flagged by our content filter and needs manual review.
-
-            ### What happens next
-            - A maintainer will review your entry shortly
-            - If approved, your PR will be merged automatically
-            - You'll be notified of the decision
-
-            Please be patient while we review. Thank you!
-            MOD_EOF
+            printf '%s\n' \
+              '## Flagged for Manual Review' \
+              '' \
+              'Your entry was flagged by our content filter and needs manual review.' \
+              '' \
+              '### What happens next' \
+              '- A maintainer will review your entry shortly' \
+              '- If approved, your PR will be merged automatically' \
+              "- You'll be notified of the decision" \
+              '' \
+              'Please be patient while we review. Thank you!' \
+              > /tmp/moderation-comment.md
             gh pr comment $PR_NUMBER --body-file /tmp/moderation-comment.md
             gh pr edit $PR_NUMBER --add-label "moderation"
           fi
