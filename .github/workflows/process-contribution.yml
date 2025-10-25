@@ -195,7 +195,8 @@ jobs:
           # Replace placeholders
           sed -i "s|ENTRY_PLACEHOLDER|${{ steps.validate.outputs.entry }}|g" /tmp/approval-comment.md
 
-          gh pr comment $PR_NUMBER --body-file /tmp/approval-comment.md
+          # Try to comment (may fail if already exists or rate limited)
+          gh pr comment $PR_NUMBER --body-file /tmp/approval-comment.md || echo "Comment skipped"
 
           # Remove invalid/moderation labels if they exist (user fixed their entry or maintainer approved)
           gh pr edit $PR_NUMBER --remove-label "invalid" 2>/dev/null || true
