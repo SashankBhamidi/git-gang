@@ -171,6 +171,18 @@ jobs:
           GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
           git remote set-url origin https://x-access-token:${GIT_TOKEN}@github.com/${{ github.repository }}.git
 
+          # Pull latest changes to avoid race conditions with concurrent post-merge workflows
+          # Use rebase to apply our commit on top of any new changes
+          echo "Pulling latest changes from master..."
+          if ! git pull --rebase origin master; then
+            echo "WARNING: Rebase conflicts detected, attempting merge strategy..."
+            git rebase --abort
+            if ! git pull --no-rebase origin master; then
+              echo "ERROR: Failed to merge latest changes"
+              exit 1
+            fi
+          fi
+
           # Try to push
           if ! git push origin master; then
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
