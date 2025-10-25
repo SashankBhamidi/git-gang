@@ -11,7 +11,3 @@ Want to join the Git Gang? Just fill out the form below.
 - Name: Hrithik
 - Username: hrithiksawhney
 - Message: Excited to contribute to this amazing open-source community! Happy to be part of the Git Gang and support collaborative development.
-
-- Name: 
-- Username: 
-- Message: 
