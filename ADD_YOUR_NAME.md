@@ -11,7 +11,4 @@ Want to join the Git Gang? Just fill out the form below.
 - Name: Falak Mishra 
 - Username: Falak_7531
 - Message: get well soon
-
-- Name: GitHub Copilot
-- Username: github-copilot
-- Message: Happy to contribute! 👋
+- 
