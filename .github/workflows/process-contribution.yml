@@ -202,17 +202,17 @@ jobs:
           gh pr edit $PR_NUMBER --remove-label "invalid" 2>/dev/null || true
           gh pr edit $PR_NUMBER --remove-label "moderation" 2>/dev/null || true
 
-          # Add approved label
-          gh pr edit $PR_NUMBER --add-label "approved"
+          # Add approved label (may fail on review events due to permissions)
+          gh pr edit $PR_NUMBER --add-label "approved" 2>/dev/null || echo "Label update skipped"
 
           # Add Hacktoberfest label if it's October
           CURRENT_MONTH=$(date +%m)
           if [ "$CURRENT_MONTH" = "10" ]; then
             echo "October detected - adding hacktoberfest-accepted label"
-            gh pr edit $PR_NUMBER --add-label "hacktoberfest-accepted"
+            gh pr edit $PR_NUMBER --add-label "hacktoberfest-accepted" 2>/dev/null || true
           fi
 
-          # Auto-merge approved contributions
+          # Auto-merge approved contributions (critical - must succeed)
           echo "Auto-merging approved contribution..."
           gh pr merge $PR_NUMBER --squash --auto
           echo "Auto-merge enabled - PR will merge when all checks pass"
