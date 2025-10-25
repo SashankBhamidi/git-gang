@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Hrithik
-- Username: hrithiksawhney
-- Message: Excited to contribute to this amazing open-source community! Happy to be part of the Git Gang and support collaborative development.
+- Name: Muhammad Umar Aziz
+- Username: umar1110
+- Message: Excited to contribute to this amazing open-source community! Happy to be part of the Git Gang and support collaborative development. See you :) 
