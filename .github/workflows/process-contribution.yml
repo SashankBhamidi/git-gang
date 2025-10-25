@@ -130,13 +130,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
+      - name: Check for maintainer approval
+        id: check-approval
+        if: steps.file-check.outputs.valid == 'true'
+        run: |
+          # Check if PR has been approved by a maintainer (SashankBhamidi)
+          APPROVALS=$(gh pr view $PR_NUMBER --json reviews --jq '[.reviews[] | select(.state == "APPROVED" and .author.login == "SashankBhamidi")] | length')
+
+          if [ "$APPROVALS" -gt 0 ]; then
+            echo "maintainer_approved=true" >> $GITHUB_OUTPUT
+            echo "PR has maintainer approval - will bypass profanity check"
+          else
+            echo "maintainer_approved=false" >> $GITHUB_OUTPUT
+            echo "No maintainer approval found"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
       - name: Comprehensive validation and profanity check
         id: validate
         if: steps.file-check.outputs.valid == 'true'
         run: node scripts/comprehensive-validation.js || true
 
       - name: Verify GitHub username matches PR author
-        if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true'
+        if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && (steps.validate.outputs.profanity_detected != 'true' || steps.check-approval.outputs.maintainer_approved == 'true')
         id: username-check
         run: |
           ENTRY_USERNAME="${{ steps.validate.outputs.username }}"
@@ -155,7 +172,7 @@ jobs:
           fi
 
       - name: Approve and comment on valid contribution
-        if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && steps.validate.outputs.profanity_detected != 'true' && steps.username-check.outputs.valid == 'true'
+        if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && (steps.validate.outputs.profanity_detected != 'true' || steps.check-approval.outputs.maintainer_approved == 'true') && steps.username-check.outputs.valid == 'true'
         run: |
           # Create comment body in temp file to handle special characters
           cat > /tmp/approval-comment.md << 'COMMENT_EOF'
@@ -201,7 +218,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Create moderation issue for profanity
-        if: steps.validate.outputs.profanity_detected == 'true'
+        if: steps.validate.outputs.profanity_detected == 'true' && steps.check-approval.outputs.maintainer_approved != 'true'
         id: moderation-issue
         run: |
           # Create issue body in temp file to handle special characters
@@ -271,7 +288,7 @@ jobs:
         if: |
           (steps.file-check.outputs.valid == 'false' ||
            steps.validate.outputs.valid == 'false' ||
-           steps.validate.outputs.profanity_detected == 'true' ||
+           (steps.validate.outputs.profanity_detected == 'true' && steps.check-approval.outputs.maintainer_approved != 'true') ||
            steps.username-check.outputs.valid == 'false') &&
           steps.file-check.outputs.is_contribution == 'true'
         run: |
