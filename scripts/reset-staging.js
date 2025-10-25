@@ -4,7 +4,7 @@ const fs = require('fs');
 
 function resetStagingFile() {
   try {
-    const template = `# Add Your Name
+    const template = `# Add Your Name Here
 
 Want to join the Git Gang? Just fill out the form below.
 
