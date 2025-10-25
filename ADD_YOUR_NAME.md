@@ -9,5 +9,5 @@ Want to join the Git Gang? Just fill out the form below.
 ## Add your entry below this line
 
 - Name: Heisenberg
-- Username: alsrinivas.346@gmail.com
+- Username: Srinu346
 - Message: Enjoying Hacktober Fest
