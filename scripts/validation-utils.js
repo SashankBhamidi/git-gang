@@ -65,9 +65,18 @@ function parseSimpleFormat(text) {
     return null;
   }
 
+  // Extract username from various formats
+  let username = usernameMatch[1].trim();
+  // Strip @ prefix
+  username = username.replace(/^@/, '');
+  // Strip GitHub URL (https://github.com/username or github.com/username)
+  username = username.replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//, '');
+  // Remove trailing slashes
+  username = username.replace(/\/$/, '');
+
   return {
     name: capitalizeWords(nameMatch[1].trim()),
-    username: usernameMatch[1].trim().replace(/^@/, ''),
+    username: username,
     message: messageMatch ? messageMatch[1].trim() : ''
   };
 }
