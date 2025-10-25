@@ -66,7 +66,7 @@ jobs:
           fi
 
       - name: Link PR to an open contribution issue
-        if: steps.file-check.outputs.is_contribution == 'true'
+        if: steps.file-check.outputs.is_contribution == 'true' && github.event.pull_request.user.login != 'SashankBhamidi'
         continue-on-error: true
         run: |
           set +e  # Don't exit on error, we'll handle errors gracefully
