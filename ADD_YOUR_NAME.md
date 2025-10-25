@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Preet Chauhan
+- Username: PREETCHAUHAN2005
+- Message: I am a student passionate to learn about Artificial General Intelligence and I want to join the Community of AGI Learners. Feel free to connect with me if you are also passionate about AGI.
