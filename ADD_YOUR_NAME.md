@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Sneha Chourey
+- Username: sneha-chourey
+- Message: happy to contribute here!
