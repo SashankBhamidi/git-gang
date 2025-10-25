@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Daksh Aggarwal
-- Username: Daksh-Aggarwal
-- Message: Hey everyone!
+- Name: 
+- Username: 
+- Message: 
