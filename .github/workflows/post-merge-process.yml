@@ -235,9 +235,9 @@ jobs:
           echo "Rolling back changes due to processing failure"
 
           # Log failed entry to repository
-          mkdir -p .failed-entries
+          mkdir -p .github/failed-entries
           TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
-          FAILED_LOG=".failed-entries/${TIMESTAMP}_${{ github.sha }}.md"
+          FAILED_LOG=".github/failed-entries/${TIMESTAMP}_${{ github.sha }}.md"
 
           cat > "$FAILED_LOG" << 'FAILED_EOF'
           # Failed Post-Merge Processing
@@ -295,7 +295,7 @@ jobs:
             git reset --hard "$backup_commit"
 
             # Add failed entry log to git
-            git add .failed-entries/
+            git add .github/failed-entries/
 
             # Configure git with token for rollback push (use PAT if available)
             GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
