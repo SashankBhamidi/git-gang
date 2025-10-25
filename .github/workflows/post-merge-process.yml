@@ -6,7 +6,7 @@ on:
     paths: ["ADD_YOUR_NAME.md"]
 
 concurrency:
-  group: post-merge-processing
+  group: post-merge-processing-${{ github.sha }}
   cancel-in-progress: false
 
 permissions:
@@ -37,7 +37,7 @@ jobs:
       - name: Setup Git configuration
         run: |
           git config --global user.name "Sashank Bhamidi"
-          git config --global user.email "sashankbhamidi@users.noreply.github.com"
+          git config --global user.email "hello@sashank.wiki"
 
       - name: Check if ADD_YOUR_NAME.md has new content
         id: check-content
@@ -171,8 +171,38 @@ jobs:
           GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
           git remote set-url origin https://x-access-token:${GIT_TOKEN}@github.com/${{ github.repository }}.git
 
-          # Try to push
-          if ! git push origin master; then
+          # Pull latest changes to avoid race conditions with concurrent post-merge workflows
+          # Use rebase to apply our commit on top of any new changes
+          echo "Pulling latest changes from master..."
+          if ! git pull --rebase origin master; then
+            echo "WARNING: Rebase conflicts detected, attempting merge strategy..."
+            git rebase --abort
+            if ! git pull --no-rebase origin master; then
+              echo "ERROR: Failed to merge latest changes"
+              exit 1
+            fi
+          fi
+
+          # Try to push with retry logic for high-concurrency scenarios
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          PUSH_SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if git push origin master; then
+              PUSH_SUCCESS=true
+              break
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Push failed (attempt $RETRY_COUNT/$MAX_RETRIES), pulling and retrying..."
+              git pull --rebase origin master || git pull --no-rebase origin master
+              sleep 2
+            fi
+          done
+
+          if [ "$PUSH_SUCCESS" = false ]; then
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "ERROR: Push failed due to branch protection rules"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -204,6 +234,45 @@ jobs:
         run: |
           echo "Rolling back changes due to processing failure"
 
+          # Log failed entry to repository
+          mkdir -p .failed-entries
+          TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
+          FAILED_LOG=".failed-entries/${TIMESTAMP}_${{ github.sha }}.md"
+
+          cat > "$FAILED_LOG" << 'FAILED_EOF'
+          # Failed Post-Merge Processing
+
+          **Timestamp:** $TIMESTAMP UTC
+          **Commit SHA:** ${{ github.sha }}
+          **PR Number:** (extracted from commit message if available)
+          **Workflow Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Entry Content
+
+          ```
+          ENTRY_CONTENT_PLACEHOLDER
+          ```
+
+          ## Failure Reason
+
+          Post-merge processing failed. Check workflow logs for details.
+
+          ## Action Required
+
+          Maintainer should:
+          1. Review workflow logs
+          2. Fix any issues
+          3. Manually process this entry or re-run workflow
+          FAILED_EOF
+
+          # Capture entry content if ADD_YOUR_NAME.md.backup exists
+          if [ -f "ADD_YOUR_NAME.md.backup" ]; then
+            ENTRY_CONTENT=$(sed -n '/Add your entry below this line/,$p' ADD_YOUR_NAME.md.backup)
+            # Escape for sed (basic escaping)
+            ENTRY_CONTENT_ESCAPED=$(echo "$ENTRY_CONTENT" | sed 's/[\/&]/\\&/g')
+            sed -i "s|ENTRY_CONTENT_PLACEHOLDER|$ENTRY_CONTENT_ESCAPED|g" "$FAILED_LOG"
+          fi
+
           # Restore backup files if they exist
           if [ -f "CONTRIBUTORS.md.backup" ]; then
             mv CONTRIBUTORS.md.backup CONTRIBUTORS.md
@@ -225,13 +294,22 @@ jobs:
             backup_commit=$(cat .git-backup-commit)
             git reset --hard "$backup_commit"
 
+            # Add failed entry log to git
+            git add .failed-entries/
+
             # Configure git with token for rollback push (use PAT if available)
             GIT_TOKEN="${{ secrets.PAT_TOKEN || github.token }}"
             git remote set-url origin https://x-access-token:${GIT_TOKEN}@github.com/${{ github.repository }}.git
+            git config user.name "Sashank Bhamidi"
+            git config user.email "hello@sashank.wiki"
+
+            # Commit failed entry log
+            git commit -m "Log failed post-merge processing for ${{ github.sha }}" || echo "No failed entry to commit"
 
             # Try to push the rollback (won't work if branch protection blocks it, but we tried)
             if git push --force-with-lease origin master; then
               echo "Successfully reset repository to backup commit: $backup_commit"
+              echo "Failed entry logged to $FAILED_LOG"
             else
               echo "Failed to push rollback - manual intervention required"
               echo "Backup commit SHA: $backup_commit"
