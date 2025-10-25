@@ -22,12 +22,17 @@ function main() {
     const content = fs.readFileSync('ADD_YOUR_NAME.md', 'utf8');
     const lines = content.split('\n');
 
-    // Check if file has required template structure
-    const hasTitle = content.includes('# Add Your Name Here');
+    // Check if file has required template structure with exact heading match
+    const firstLine = lines[0].trim();
+    if (firstLine !== '# Add Your Name') {
+      setError('The first line must be exactly "# Add Your Name". Do not modify the template heading.');
+      return;
+    }
+
     const hasInstructions = content.includes('Want to join the Git Gang?');
     const hasSectionMarker = content.includes('Add your entry below this line');
 
-    if (!hasTitle || !hasInstructions || !hasSectionMarker) {
+    if (!hasInstructions || !hasSectionMarker) {
       setError('ADD_YOUR_NAME.md template structure is missing. Please keep the original template and only fill in your details below "Add your entry below this line".');
       return;
     }
