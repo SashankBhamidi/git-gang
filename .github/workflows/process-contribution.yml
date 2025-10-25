@@ -174,8 +174,12 @@ jobs:
       - name: Approve and comment on valid contribution
         if: steps.file-check.outputs.valid == 'true' && steps.validate.outputs.valid == 'true' && (steps.validate.outputs.profanity_detected != 'true' || steps.check-approval.outputs.maintainer_approved == 'true') && steps.username-check.outputs.valid == 'true'
         run: |
-          # Create comment body in temp file to handle special characters
-          cat > /tmp/approval-comment.md << 'COMMENT_EOF'
+          # Skip comment for maintainer PRs
+          if [ "$PR_AUTHOR" = "SashankBhamidi" ]; then
+            echo "Skipping comment for maintainer PR"
+          else
+            # Create comment body in temp file to handle special characters
+            cat > /tmp/approval-comment.md << 'COMMENT_EOF'
           ## Approved - Ready to Merge
 
           Your entry looks good:
@@ -197,6 +201,7 @@ jobs:
 
           # Try to comment (may fail if already exists or rate limited)
           gh pr comment $PR_NUMBER --body-file /tmp/approval-comment.md || echo "Comment skipped"
+          fi
 
           # Remove invalid/moderation labels if they exist (user fixed their entry or maintainer approved)
           gh pr edit $PR_NUMBER --remove-label "invalid" 2>/dev/null || true
@@ -279,7 +284,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Handle non-contribution PRs
-        if: steps.file-check.outputs.is_contribution == 'false'
+        if: steps.file-check.outputs.is_contribution == 'false' && github.event.pull_request.user.login != 'SashankBhamidi'
         run: |
           gh pr comment $PR_NUMBER --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
           gh pr edit $PR_NUMBER --add-label "not-a-contribution"
@@ -292,7 +297,8 @@ jobs:
            steps.validate.outputs.valid == 'false' ||
            (steps.validate.outputs.profanity_detected == 'true' && steps.check-approval.outputs.maintainer_approved != 'true') ||
            steps.username-check.outputs.valid == 'false') &&
-          steps.file-check.outputs.is_contribution == 'true'
+          steps.file-check.outputs.is_contribution == 'true' &&
+          github.event.pull_request.user.login != 'SashankBhamidi'
         run: |
           if [ "${{ steps.file-check.outputs.valid }}" == "false" ]; then
             # Use printf to avoid heredoc issues with variable substitution
