@@ -1,4 +1,4 @@
-# Add your name here
+# Add Your Name Here
 
 Want to join the Git Gang? Just fill out the form below.
 
