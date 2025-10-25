@@ -9,6 +9,6 @@ Want to join the Git Gang? Just fill out the form below.
 ## Add your entry below this line
 
 - Name: Falak Mishra 
-- Username: Falak_7531
+- Username: Falak7531
 - Message: get well soon
 - 
