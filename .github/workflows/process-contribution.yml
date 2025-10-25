@@ -197,8 +197,9 @@ jobs:
 
           gh pr comment $PR_NUMBER --body-file /tmp/approval-comment.md
 
-          # Remove invalid label if it exists (user fixed their entry)
+          # Remove invalid/moderation labels if they exist (user fixed their entry or maintainer approved)
           gh pr edit $PR_NUMBER --remove-label "invalid" 2>/dev/null || true
+          gh pr edit $PR_NUMBER --remove-label "moderation" 2>/dev/null || true
 
           # Add approved label
           gh pr edit $PR_NUMBER --add-label "approved"
