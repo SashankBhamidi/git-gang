@@ -1,4 +1,4 @@
-# Add Your Name Here
+# Raja Rathour
 
 Want to join the Git Gang? Just fill out the form below.
 
@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Raja Rathour
+- Username: Raja-89
+- Message: A contribution by me for Hactober 2025
