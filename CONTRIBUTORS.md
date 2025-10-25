@@ -52,6 +52,7 @@ Total contributors: 46
 - [Vihaan Zutshi](https://github.com/vihaanified) - Can't wait to see this grow!
 - [Vishal M](https://github.com/vishalm342) - Excited to join the Git-Gang community!
 - [Yashpss01](https://github.com/yashpss01) - Hello Contributers !!
+- [Raja-89](https://github.com/Raja-89) - This is my contribution for Hactober 2025
 
 
 

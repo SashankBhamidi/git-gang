@@ -7,9 +7,9 @@ Want to join the Git Gang? It takes 15 seconds.
 1. **Open this file:** [ADD_YOUR_NAME.md](ADD_YOUR_NAME.md)
 2. **Fill out the form:**
    ```
-   - Name: Your Name
-   - Username: your-github-username
-   - Message: Optional message
+   - Name:  Raja Rathour
+   - Username: Raja-89
+   - Message: This is my contribution for Hactober 2025
    ```
 3. **Submit a pull request**
 4. **Done.** Our automation handles the rest.

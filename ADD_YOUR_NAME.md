@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Raja Rathour
+- Username: Raja-89
+- Message: This is my contribution for Hactober 2025
