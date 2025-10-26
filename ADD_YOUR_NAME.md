@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Saumya Bisht
-- Username: SaumyaBish-t
-- Message: Code for good
+- Name: 
+- Username: 
+- Message: 
