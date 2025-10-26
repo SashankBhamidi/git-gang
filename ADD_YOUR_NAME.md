@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name:Vara Rahul Rajana
-- Username: rajanarahul93
-- Message: Excited to join the Git Gang community!
+- Name: 
+- Username: 
+- Message: 
