@@ -274,7 +274,7 @@ jobs:
           gh pr edit $PR_NUMBER --body-file /tmp/pr-body-update.txt
           echo "Linked moderation issue #$ISSUE_NUMBER to PR #$PR_NUMBER"
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Request review for unauthorized file changes
         if: steps.file-check.outputs.valid == 'false' && steps.file-check.outputs.is_contribution == 'true'
