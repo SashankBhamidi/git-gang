@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Akshat
+- Username: AkshatKumar10
+- Message: Hey!excited to be part of git gang
