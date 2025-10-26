@@ -10,10 +10,10 @@ Tracking milestone contributors for Git Gang (by chronological join order).
 | 10th | Raunak | [@raunak-devs](https://github.com/raunak-devs) | #13 |
 | 25th | Mishraaa G | [@mishraa-G](https://github.com/mishraa-G) | #63 |
 | 50th | Sneha Chourey | [@Sneha-chourey](https://github.com/Sneha-chourey) | #132 |
+| 75th | Tanishq | [@TanishqDNEC](https://github.com/TanishqDNEC) | #203 |
 
 ## Upcoming Milestones
 
-- 75th contributor
 - 100th contributor
 - 200th contributor
 - 500th contributor
