@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Dipak Kumar Agrahari
-- Username: sea-deep
-- Message: yoo I'm new to programming :3
+- Name: 
+- Username: 
+- Message: 
