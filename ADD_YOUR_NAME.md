@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Aman Singhal
+- Username: trock3338
+- Message: I am Full-stack developer and i love contributing to open source projects, this one is for hacktoberFest.
