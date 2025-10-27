@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Insha
-- Username: Insha-7
-- Message: I am a contributor!!
+- Name: 
+- Username: 
+- Message: 
