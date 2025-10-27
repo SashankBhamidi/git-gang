@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: San
+- Username: Cyberpunk-San
+- Message: Yo!Sup , just came here to say hi to the git gang.
