@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Vik Williamson
-- Username: vikwilliamson
-- Message: Bodybuilder. Drummer. Dev. - Find me everywhere @thedreadeddragon 🐉 #GitGang4L
+- Name: 
+- Username: 
+- Message: 
