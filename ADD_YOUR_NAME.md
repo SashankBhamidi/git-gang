@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Vanshika
-- Username: vanshikap21
-- Message: This is my First PR
+- Name: 
+- Username: 
+- Message: 
