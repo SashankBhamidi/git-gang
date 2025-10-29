@@ -11,10 +11,10 @@ Tracking milestone contributors for Git Gang (by chronological join order).
 | 25th | Mishraaa G | [@mishraa-G](https://github.com/mishraa-G) | #63 |
 | 50th | Sneha Chourey | [@Sneha-chourey](https://github.com/Sneha-chourey) | #132 |
 | 75th | Tanishq | [@TanishqDNEC](https://github.com/TanishqDNEC) | #203 |
+| 100th | Ansh Kumar | [@Akrodriguez](https://github.com/Akrodriguez) | #257 |
 
 ## Upcoming Milestones
 
-- 100th contributor
 - 200th contributor
 - 500th contributor
 - 1,000th contributor
