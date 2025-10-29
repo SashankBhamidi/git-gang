@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Parth Parmar
+- Username: ParthParmar88
+- Message: Excited to contribute to this amazing open-source community! Happy to be part of the Git Gang and support collaborative development.
