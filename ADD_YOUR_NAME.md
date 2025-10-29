@@ -10,4 +10,4 @@ Want to join the Git Gang? Just fill out the form below.
 
 - Name: Arav Thakkar
 - Username: Aaravthk
-- Message: "Hello World!" xD
+- Message: Hey everyone, I am looking forward to contribute in open source projects
