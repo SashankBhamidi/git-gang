@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: swapnith kondapalli
-- Username: swapnith12
-- Message: I'm looking to contribute for javascript (NodeJS,ReactJS and NextJS issues)
+- Name: 
+- Username: 
+- Message: 
