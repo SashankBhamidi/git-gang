@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Madhur Dodake
-- Username: Madhur-Dodake
-- Message: Thanks for this
+- Name: 
+- Username: 
+- Message: 
