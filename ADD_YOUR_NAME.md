@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Jesus Peralta
-- Username: https://github.com/Chucho-Kun
-- Message: I`m a Fullstack Developer from Mexico City
+- Name: 
+- Username: 
+- Message: 
