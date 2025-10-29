@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Daniel Chinasa Okoro
-- Username: danielchinasa
-- Message: Currently contributing to open-source projects to support innovation and advancement in the tech space
+- Name: 
+- Username: 
+- Message: 
