@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Arav Thakkar
-- Username: Aaravthk
-- Message: Hey everyone, I am looking forward to contribute in open source projects
+- Name: 
+- Username: 
+- Message: 
