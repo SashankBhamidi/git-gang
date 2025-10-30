@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Gary Miller
-- Username: metacoder87
-- Message: Happy Hacktober!
+- Name: 
+- Username: 
+- Message: 
