@@ -45,18 +45,21 @@ jobs:
         with:
           node-version: "18"
 
+      - name: Fetch master branch
+        run: git fetch origin master:master
+
       - name: Check only ADD_YOUR_NAME.md is modified
         id: file-check
         run: |
           # Check if ADD_YOUR_NAME.md was renamed
-          if git diff --name-status origin/master...${{ github.event.pull_request.head.sha || github.sha }} | grep -q "^R.*ADD_YOUR_NAME.md"; then
+          if git diff --name-status master...${{ github.event.pull_request.head.sha || github.sha }} | grep -q "^R.*ADD_YOUR_NAME.md"; then
             echo "valid=false" >> $GITHUB_OUTPUT
             echo "is_contribution=false" >> $GITHUB_OUTPUT
             echo "error_message=DO NOT rename ADD_YOUR_NAME.md! Edit the file directly, don't rename it to your name." >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          files_changed=$(git diff --name-only origin/master...${{ github.event.pull_request.head.sha || github.sha }})
+          files_changed=$(git diff --name-only master...${{ github.event.pull_request.head.sha || github.sha }})
           file_count=$(echo "$files_changed" | wc -l)
           files_list=$(echo "$files_changed" | tr '\n' ', ' | sed 's/,/, /g' | sed 's/, $//')
 
@@ -294,7 +297,14 @@ jobs:
       - name: Handle non-contribution PRs
         if: steps.file-check.outputs.is_contribution == 'false' && github.event.pull_request.user.login != 'SashankBhamidi'
         run: |
-          gh pr comment $PR_NUMBER --body $'## Not a contribution\n\n**Issue:** ${{ steps.file-check.outputs.error_message }}\n\nIf you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.'
+          printf '%s\n' \
+            '## Not a contribution' \
+            '' \
+            '**Issue:** ${{ steps.file-check.outputs.error_message }}' \
+            '' \
+            'If you meant to add your name, please make sure to edit ADD_YOUR_NAME.md.' \
+            > /tmp/non-contribution-comment.md
+          gh pr comment $PR_NUMBER --body-file /tmp/non-contribution-comment.md
           gh pr edit $PR_NUMBER --add-label "not-a-contribution"
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
