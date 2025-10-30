@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Bhuswarna Kashyap
-- Username: RyanCarlisle
-- Message: You either die a hero, or live long enough to become the legacy system.
+- Name: 
+- Username: 
+- Message: 
