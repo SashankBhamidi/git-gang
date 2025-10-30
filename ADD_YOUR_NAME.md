@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Omkar Hadole
-- Username: omkar-hadole
-- Message: NA
+- Name: 
+- Username: 
+- Message: 
