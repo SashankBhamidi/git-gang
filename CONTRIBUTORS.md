@@ -4,7 +4,7 @@ Welcome to the Git Gang! These amazing developers have joined our community.
 
 ## Our Contributors
 
-Total contributors: 118
+Total contributors: 120
 
 - [Sashank Bhamidi](https://github.com/SashankBhamidi) - Creator of Git Gang - building GitHub's biggest contributors list!
 - [Aayush Bhadbhade](https://github.com/AayushJB03) - Excited to contribute to this amazing open-source community! Happy to be part of the Git Gang and support collaborative development.
@@ -99,6 +99,7 @@ Total contributors: 118
 - [Shatakshi](https://github.com/shatakshi220805) - this is my second PR
 - [Shohan](https://github.com/Shohan20lac) - Hi Shashank, love what you're trying to do here! Apes together strong. 🦍🦍🦍. I look forward to contributing and making the Open Source world a better place. Cheers!
 - [Shrasti Jaiswal](https://github.com/SrishJ23) - Excited to join Git Gang! 🚀
+- [Shriya Nayak](https://github.com/shriyanyk)
 - [Shubham Yadav](https://github.com/shubhamyadav2809) - joining the Git Gang.
 - [Siddhant Shekhar](https://github.com/sshekhar563) - Happy to contribute
 - [Sitesurfer](https://github.com/Sakshi7654) - Hello Coders!
@@ -121,6 +122,7 @@ Total contributors: 118
 - [Vedant Tapkir](https://github.com/Octaflick) - My 2nd PR
 - [Vihaan Zutshi](https://github.com/vihaanified) - Can't wait to see this grow!
 - [Vik Williamson](https://github.com/vikwilliamson) - Bodybuilder. Drummer. Dev. - Find me everywhere @thedreadeddragon 🐉 #GitGang4L
+- [Vipul Kumar](https://github.com/vipul264og) - excited to join
 - [Vishal M](https://github.com/vishalm342) - Excited to join the Git-Gang community!
 - [Vivek Upadhyay](https://github.com/vivek33up) - Happy Coding!
 - [Yashpss01](https://github.com/yashpss01) - Hello Contributers !!
