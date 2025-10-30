@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Coder-pro
+- Username: Coder-pro1
+- Message: First hacktoberfest done
