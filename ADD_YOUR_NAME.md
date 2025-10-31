@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Sujal Thakur
-- Username: sujal-thakur01
-- Message: I am a driven tech learner on a quest for coding excellence. Fuelled by passion, curiosity, and a thirst for growth.
+- Name: 
+- Username: 
+- Message: 
