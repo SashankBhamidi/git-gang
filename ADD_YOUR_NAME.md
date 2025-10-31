@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Roopa   
+- Username: Rupa-Rd
+- Message: This is my last PR for Hacktoberfest 2025.
