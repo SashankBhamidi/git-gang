@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Suraj S
-- Username: github.com/suarej
-- Message: Starting with the open source journey
+- Name: 
+- Username: 
+- Message: 
