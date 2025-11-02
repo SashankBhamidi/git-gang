@@ -51,7 +51,8 @@ jobs:
           fi
 
           content=$(cat ADD_YOUR_NAME.md)
-          commit_message="${{ github.event.head_commit.message }}"
+          # Use printf %s to safely handle commit messages with backticks or special chars
+          commit_message=$(printf '%s' '${{ github.event.head_commit.message }}')
 
           # Extract PR number from commit message (format: "Title (#123)")
           if echo "$commit_message" | grep -qE '\(#[0-9]+\)'; then
@@ -354,7 +355,7 @@ jobs:
           ISSUE_EOF
 
           # Replace placeholders with actual values (escape newlines in PR message)
-          pr_message=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
+          pr_message=$(printf '%s' '${{ github.event.head_commit.message }}' | head -n 1)
           sed -i "s|ENTRY_PLACEHOLDER|${entry:-Not captured}|g" /tmp/issue-body.md
           sed -i "s|USERNAME_PLACEHOLDER|${username:-unknown}|g" /tmp/issue-body.md
           sed -i "s|NAME_PLACEHOLDER|${name:-Not captured}|g" /tmp/issue-body.md
