@@ -4,7 +4,7 @@ Welcome to the Git Gang! These amazing developers have joined our community.
 
 ## Our Contributors
 
-Total contributors: 135
+Total contributors: 136
 
 - [Sashank Bhamidi](https://github.com/SashankBhamidi) - Creator of Git Gang - building GitHub's biggest contributors list!
 - [Aakash Raj](https://github.com/aakash-sriv) - i promise to contribute better and more meaningful commits in OSS community.
@@ -93,6 +93,7 @@ Total contributors: 135
 - [Priyansh Jain](https://github.com/Priyanshjain10) - Excited to join the Git Gang!
 - [Rafia](https://github.com/rafia-codes) - Nice Idea
 - [Raja Rathour](https://github.com/Raja-89) - This is my contribution for Hactober 2025
+- [Rajucreate](https://github.com/rajucreate) - Hello, Everyone
 - [Ramla Eman](https://github.com/Ramla-Eman) - Happy to join as a Full Stack Developer
 - [Raunak Mishra](https://github.com/raunak-mishraa) - Excited to be part of the Git Gang! 🚀
 - [Raunak Mishra](https://github.com/raunak-devs) - Just another dev pushing code and pulling dreams! 💻🔥
