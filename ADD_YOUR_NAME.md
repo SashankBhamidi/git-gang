@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Aryan Deshmukh
-- Username: aryan118335
-- Message:  Excited to start contributing!
+- Name: 
+- Username: 
+- Message: 
