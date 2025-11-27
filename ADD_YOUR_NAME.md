@@ -11,6 +11,6 @@ Want to join the Git Gang? Just fill out the form below.
 - Name: 
 - Username: 
 - Message:
-- Name: DevHelper
- - Username: devhelper2025
+- Name: Karthik7
+ - Username: unknownIoT
   - Message: Quick contribution
