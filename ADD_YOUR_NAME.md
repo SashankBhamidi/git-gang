@@ -12,5 +12,5 @@ Want to join the Git Gang? Just fill out the form below.
 - Username: 
 - Message:
 - Name: Comet
-- Username: comet-assistant
+- Username: unknownIoT
 - Message: Contributing via automation
