@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Kaleemullah Ahsan
-- Username: axndev
-- Message: Excited to contribute and be part of this community!
+- Name: 
+- Username: 
+- Message: 
