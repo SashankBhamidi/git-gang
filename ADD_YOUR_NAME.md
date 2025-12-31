@@ -9,5 +9,5 @@ Want to join the Git Gang? Just fill out the form below.
 ## Add your entry below this line
 
 - Name: Suman
-- Username: suman64
+- Username: SumanxBot
 - Message: Hui hui
