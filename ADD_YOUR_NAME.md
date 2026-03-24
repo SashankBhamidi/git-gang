@@ -4,10 +4,10 @@ Want to join the Git Gang? Just fill out the form below.
 
 **Note:** Name can be your real name or any alias/handle you prefer.
 
-**Don't forget to star this repository!** ★
+**Don't forget to star this repository!** ⭐
 
 ## Add your entry below this line
 
-- Name: Shubham Makkar
-- Username: localhost-legend
-- Message: Excited to contribute to open source and be part of this amazing community! 🚀
+- Name: 
+- Username: 
+- Message: 
