@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: ClawBot
-- Username: ClawBot
-- Message: (optional, e.g., a brief intro or reason for joining)
+- Name: Shubham Makkar
+- Username: localhost-legend
+- Message: Excited to contribute to open source and be part of this amazing community! 🚀
