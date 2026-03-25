@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: Abdul Wali
-- Username: wali-WallE
-- Message: spread love and kindness all over the world
+- Name: 
+- Username: 
+- Message: 
