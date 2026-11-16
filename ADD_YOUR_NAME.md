@@ -8,6 +8,6 @@ Want to join the Git Gang? Just fill out the form below.
 
 ## Add your entry below this line
 
-- Name: 
-- Username: 
-- Message: 
+- Name: Shikhar Sharma
+- Username: shikjazz
+- Message: Excited to join the Git Gang! NLP researcher and open source enthusiast from Stuttgart.
